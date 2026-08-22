@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PostCard Editor</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <strong>PostCard</strong>
+        <span>MyPoint.Cards</span>
+      </div>
+
+      <div class="toolbar" id="toolbar">
+        <button class="tool primary" id="addTextBtn" title="Add text">＋ Text</button>
+        <button class="tool" data-menu="fontMenu" id="fontBtn">Font</button>
+        <button class="tool" data-menu="sizeMenu" id="sizeBtn">54px ▾</button>
+        <button class="tool icon" id="boldBtn" title="Bold"><b>B</b></button>
+        <button class="tool icon" id="italicBtn" title="Italic"><i>I</i></button>
+        <button class="tool icon" data-menu="alignMenu" id="alignBtn" title="Alignment">≡</button>
+        <button class="tool" data-menu="textColorMenu" id="textColorBtn"><span class="dot" id="textColorDot"></span> Text</button>
+        <span class="sep"></span>
+        <button class="tool" data-menu="backgroundMenu">Background</button>
+        <button class="tool" data-menu="imageMenu">Image</button>
+        <button class="tool" data-menu="emojiMenu">😊</button>
+        <span class="sep"></span>
+        <button class="tool" data-menu="formatMenu" id="formatBtn">Landscape ▾</button>
+        <button class="tool" id="downloadBtn">Download</button>
+        <button class="tool success" id="insertBtn">Insert into Post</button>
+      </div>
+    </header>
+
+    <div class="subbar">
+      <div id="selectionStatus">No text selected</div>
+      <div class="subtools">
+        <button id="duplicateBtn">Duplicate</button>
+        <button id="deleteBtn">Delete</button>
+        <button data-menu="moreMenu">More ▾</button>
+      </div>
+    </div>
+
+    <main class="editorArea">
+      <div id="stageShell">
+        <div id="stage">
+          <div id="backgroundLayer"></div>
+          <div id="textLayer"></div>
+          <div id="poweredBy">Powered by MyPoint.Cards</div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="statusbar">
+      <div>
+        <span id="siteBadge">Checking active tab…</span>
+      </div>
+      <div class="caption">
+        <input id="postText" placeholder="Optional social post caption…" />
+      </div>
+      <div id="status"></div>
+    </footer>
+  </div>
+
+  <!-- popovers -->
+  <div class="popover" id="fontMenu">
+    <div class="menuTitle">Font</div>
+    <select id="fontFamily">
+      <option value="Arial, sans-serif">Arial</option>
+      <option value="Roboto, sans-serif">Roboto</option>
+      <option value="'Roboto Condensed', sans-serif">Roboto Condensed</option>
+      <option value="'Bebas Neue', sans-serif">Bebas Neue</option>
+      <option value="Oswald, sans-serif">Oswald</option>
+      <option value="Pacifico, cursive">Pacifico</option>
+      <option value="'Open Sans', sans-serif">Open Sans</option>
+      <option value="Lato, sans-serif">Lato</option>
+      <option value="Montserrat, sans-serif">Montserrat</option>
+      <option value="Poppins, sans-serif">Poppins</option>
+      <option value="Nunito, sans-serif">Nunito</option>
+      <option value="'Noto Sans Bengali', sans-serif">Noto Sans Bengali</option>
+      <option value="'Noto Sans SC', sans-serif">Noto Sans SC</option>
+      <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+      <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
+      <option value="'Noto Sans Arabic', sans-serif">Noto Sans Arabic</option>
+    </select>
+  </div>
+
+  <div class="popover" id="sizeMenu">
+    <div class="menuTitle">Font size</div>
+    <input id="fontSize" type="range" min="16" max="140" value="54">
+    <div class="rowBetween"><span>16</span><strong id="fontSizeValue">54px</strong><span>140</span></div>
+  </div>
+
+  <div class="popover compact" id="alignMenu">
+    <button data-align="left">Left</button>
+    <button data-align="center">Center</button>
+    <button data-align="right">Right</button>
+  </div>
+
+  <div class="popover" id="textColorMenu">
+    <div class="menuTitle">Text color</div>
+    <input id="textColor" type="color" value="#ffffff">
+  </div>
+
+  <div class="popover wide" id="backgroundMenu">
+    <div class="menuTitle">Background</div>
+    <div id="solidColors" class="swatches"></div>
+    <div class="menuTitle spaceTop">Gradients</div>
+    <div id="gradients" class="swatches"></div>
+    <div class="spaceTop inlineControls">
+      <input id="bgColor" type="color" value="#ed213a">
+      <button id="applyBgColor">Custom color</button>
+    </div>
+  </div>
+
+  <div class="popover wide" id="imageMenu">
+    <div class="menuTitle">Image background</div>
+    <input id="imageUpload" type="file" accept="image/*">
+    <div class="spaceTop">
+      <label>Scale</label>
+      <div class="buttonRow">
+        <button data-scale="contain" class="active">Contain</button>
+        <button data-scale="cover">Cover</button>
+        <button data-scale="actual">Actual</button>
+      </div>
+    </div>
+    <div class="spaceTop">
+      <label>Darkness <span id="darknessValue">20%</span></label>
+      <input id="darkness" type="range" min="0" max="80" step="5" value="20">
+    </div>
+    <div class="spaceTop inlineControls">
+      <input id="featuredSearch" placeholder="Search featured images">
+      <button id="featuredBtn">Search</button>
+    </div>
+    <div id="featuredResults" class="imageGrid"></div>
+  </div>
+
+  <div class="popover wide" id="emojiMenu">
+    <div class="menuTitle">Emoji</div>
+    <div id="emojiGrid" class="emojiGrid"></div>
+  </div>
+
+  <div class="popover compact" id="formatMenu">
+    <button data-format="landscape">Landscape</button>
+    <button data-format="square">Square</button>
+    <button data-format="portrait">Portrait</button>
+  </div>
+
+  <div class="popover" id="moreMenu">
+    <label>Text width <span id="widthValue">70%</span></label>
+    <input id="textWidth" type="range" min="20" max="95" value="70">
+    <label class="spaceTop">Line height <span id="lineHeightValue">1.2</span></label>
+    <input id="lineHeight" type="range" min="0.8" max="2.2" step="0.1" value="1.2">
+    <label class="check spaceTop"><input id="shadowToggle" type="checkbox" checked> Text shadow</label>
+    <label class="check"><input id="poweredByToggle" type="checkbox"> Powered by MyPoint.Cards</label>
+  </div>
+
+  <canvas id="exportCanvas" hidden></canvas>
+  <script src="editor.js"></script>
+</body>
+</html>

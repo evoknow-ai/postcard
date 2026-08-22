@@ -1,0 +1,233 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PostCard</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>PostCard</h1>
+        <p>MyPoint.Cards inside your social feed.</p>
+      </div>
+      <span id="siteBadge">Checking site…</span>
+    </header>
+
+    <section class="workspace">
+      <aside class="panel">
+        <div class="tabs">
+          <button class="tab active" data-tab="text">🅰️ Text</button>
+          <button class="tab" data-tab="colors">🎨 Colors</button>
+          <button class="tab" data-tab="emoji">😄 Emoji</button>
+          <button class="tab" data-tab="giphy">🖼️ Giphy</button>
+          <button class="tab" data-tab="upload">⬆️ Upload</button>
+          <button class="tab" data-tab="featured">⭐ Featured</button>
+        </div>
+
+        <section class="pane active" id="pane-text">
+          <div class="toolbarLine">
+            <button id="addText" class="primary">+ Add Text</button>
+            <button id="deleteText" class="danger">Delete Selected</button>
+          </div>
+
+          <p class="hint left">Click a text block in the preview, then type directly into it. Each block has its own styling.</p>
+
+          <label>Post text <span>(optional — goes into the social composer)</span></label>
+          <textarea id="postText" rows="2" placeholder="Optional caption for the social-media post…"></textarea>
+
+          <div class="divider"></div>
+          <label>Selected text block</label>
+          <div id="noSelection" class="emptyState">Select a text block in the preview.</div>
+
+          <div id="textControls">
+            <div class="row">
+              <div class="grow">
+                <label>Font</label>
+                <select id="fontFamily">
+                  <option value="Arial, sans-serif">Arial</option>
+                  <option value="Roboto, sans-serif">Roboto</option>
+                  <option value="'Roboto Condensed', sans-serif">Roboto Condensed</option>
+                  <option value="'Bebas Neue', sans-serif">Bebas Neue</option>
+                  <option value="Oswald, sans-serif">Oswald</option>
+                  <option value="Pacifico, cursive">Pacifico</option>
+                  <option value="'Open Sans', sans-serif">Open Sans</option>
+                  <option value="Lato, sans-serif">Lato</option>
+                  <option value="Montserrat, sans-serif">Montserrat</option>
+                  <option value="Poppins, sans-serif">Poppins</option>
+                  <option value="Nunito, sans-serif">Nunito</option>
+                  <option value="'Noto Sans Bengali', sans-serif">Noto Sans Bengali</option>
+                  <option value="'Noto Sans SC', sans-serif">Noto Sans SC</option>
+                  <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+                  <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
+                  <option value="'Noto Sans Arabic', sans-serif">Noto Sans Arabic</option>
+                </select>
+              </div>
+              <div>
+                <label>Color</label>
+                <input id="textColor" type="color" value="#ffffff">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="grow">
+                <label>Size <span id="fontSizeValue">54px</span></label>
+                <input id="fontSize" type="range" min="16" max="140" value="54">
+              </div>
+              <div class="grow">
+                <label>Line height <span id="lineHeightValue">1.2</span></label>
+                <input id="lineHeight" type="range" min="0.8" max="2.2" step="0.1" value="1.2">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="grow">
+                <label>Alignment</label>
+                <div class="segmented">
+                  <button data-align="left">Left</button>
+                  <button data-align="center" class="active">Center</button>
+                  <button data-align="right">Right</button>
+                </div>
+              </div>
+              <div class="grow">
+                <label>Style</label>
+                <div class="segmented">
+                  <button id="boldBtn" class="active">B</button>
+                  <button id="italicBtn"><i>I</i></button>
+                  <button id="shadowBtn" class="active">Shadow</button>
+                </div>
+              </div>
+            </div>
+
+            <label>Text width <span id="widthValue">70%</span></label>
+            <input id="textWidth" type="range" min="20" max="95" value="70">
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row">
+            <div class="grow">
+              <label>Card format</label>
+              <select id="format">
+                <option value="landscape" selected>Landscape · 1200×675</option>
+                <option value="square">Square · 1080×1080</option>
+                <option value="portrait">Portrait · 1080×1350</option>
+              </select>
+            </div>
+            <div class="grow">
+              <label>Download as</label>
+              <select id="downloadFormat">
+                <option value="png" selected>PNG</option>
+                <option value="webp">WebP</option>
+                <option value="jpeg">JPG</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="check"><input id="poweredBy" type="checkbox"> Show “Powered by MyPoint.Cards”</label>
+        </section>
+
+        <section class="pane" id="pane-colors">
+          <label>Choose a background color:</label>
+          <div id="solidColors" class="swatches"></div>
+          <label class="sectionLabel">Gradient backgrounds:</label>
+          <div id="gradients" class="swatches"></div>
+          <label class="sectionLabel">Create custom gradient:</label>
+          <div class="row">
+            <input id="gradientColor1" type="color" value="#ff0000">
+            <input id="gradientColor2" type="color" value="#ffcc00">
+            <select id="gradientDirection" class="grow">
+              <option value="to right">Horizontal →</option>
+              <option value="to left">Horizontal ←</option>
+              <option value="to bottom">Vertical ↓</option>
+              <option value="to top">Vertical ↑</option>
+              <option value="45deg">Diagonal ↘</option>
+              <option value="135deg">Diagonal ↗</option>
+              <option value="225deg">Diagonal ↙</option>
+              <option value="315deg">Diagonal ↖</option>
+            </select>
+            <button id="applyGradient">Apply</button>
+          </div>
+          <label class="sectionLabel">Custom color:</label>
+          <input id="bgColor" type="color" value="#ed213a">
+        </section>
+
+        <section class="pane" id="pane-emoji">
+          <label>Click an emoji to insert it into the selected text block:</label>
+          <div id="emojiGrid" class="emojiGrid"></div>
+        </section>
+
+        <section class="pane" id="pane-giphy">
+          <label>Search for GIFs:</label>
+          <div class="row">
+            <input id="giphySearch" class="grow textInput" placeholder="Enter a search term…">
+            <button id="giphyBtn" class="primarySmall">Search</button>
+          </div>
+          <div id="giphyResults" class="imageGrid message">Search Giphy for a background.</div>
+        </section>
+
+        <section class="pane" id="pane-upload">
+          <label>Upload an image:</label>
+          <input id="imageUpload" type="file" accept="image/*">
+          <div id="uploadControls" class="hidden">
+            <div class="uploadPreviewRow">
+              <img id="uploadPreview">
+              <button id="removeUpload">Remove Image</button>
+            </div>
+            <label>Scaling:</label>
+            <div class="segmented">
+              <button data-scale="contain" class="active">Contain</button>
+              <button data-scale="cover">Cover</button>
+              <button data-scale="actual">Actual Size</button>
+            </div>
+            <label>Darkness: <span id="darknessValue">20%</span></label>
+            <input id="darkness" type="range" min="0" max="80" step="5" value="20">
+            <p class="hint left">Drag the background directly inside the preview.</p>
+          </div>
+        </section>
+
+        <section class="pane" id="pane-featured">
+          <label>Search for featured images:</label>
+          <div class="row">
+            <input id="featuredSearch" class="grow textInput" placeholder="Search by a keyword">
+            <button id="featuredBtn" class="primarySmall">Search</button>
+          </div>
+          <div id="featuredResults" class="imageGrid message">Loading featured images…</div>
+        </section>
+      </aside>
+
+      <section class="previewColumn">
+        <div class="previewHeader">
+          <span>Preview — edit text directly</span>
+          <span id="selectionLabel">No text selected</span>
+        </div>
+        <div id="stageWrap">
+          <div id="stage">
+            <div id="backgroundLayer"></div>
+            <div id="textLayer"></div>
+            <div id="poweredByText">Powered by MyPoint.Cards</div>
+          </div>
+        </div>
+        <p class="hint">Click text to edit it. Drag near the edge of a selected text block to move it.</p>
+
+        <div class="actions">
+          <button id="insert" class="primary">Insert into Post</button>
+          <button id="download">Download</button>
+          <button id="reset">Reset</button>
+        </div>
+        <p id="status"></p>
+      </section>
+    </section>
+
+    <canvas id="exportCanvas" hidden></canvas>
+
+    <footer>
+      <a href="https://mypoint.cards/" target="_blank">MyPoint.Cards</a>
+      <span>PostCard v0.3.0</span>
+    </footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
