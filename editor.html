@@ -5,158 +5,314 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PostCard Editor</title>
   <link rel="stylesheet" href="editor.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Cairo:wght@400;700&family=Hind+Siliguri:wght@400;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Noto+Kufi+Arabic:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Serif+JP:wght@400;700&family=Noto+Serif+SC:wght@400;700&family=Nunito:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@400;700&family=Pacifico&family=Poppins:wght@400;700&family=Roboto:wght@400;700&family=Roboto+Condensed:wght@400;700&family=Tiro+Bangla&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <strong>PostCard</strong>
-        <span>MyPoint.Cards</span>
-      </div>
-
-      <div class="toolbar" id="toolbar">
-        <button class="tool primary" id="addTextBtn" title="Add text">＋ Text</button>
-        <button class="tool" data-menu="fontMenu" id="fontBtn">Font</button>
-        <button class="tool" data-menu="sizeMenu" id="sizeBtn">54px ▾</button>
-        <button class="tool icon" id="boldBtn" title="Bold"><b>B</b></button>
-        <button class="tool icon" id="italicBtn" title="Italic"><i>I</i></button>
-        <button class="tool icon" data-menu="alignMenu" id="alignBtn" title="Alignment">≡</button>
-        <button class="tool" data-menu="textColorMenu" id="textColorBtn"><span class="dot" id="textColorDot"></span> Text</button>
-        <span class="sep"></span>
-        <button class="tool" data-menu="backgroundMenu">Background</button>
-        <button class="tool" data-menu="imageMenu">Image</button>
-        <button class="tool" data-menu="emojiMenu">😊</button>
-        <span class="sep"></span>
-        <button class="tool" data-menu="formatMenu" id="formatBtn">Landscape ▾</button>
-        <button class="tool" id="downloadBtn">Download</button>
-        <button class="tool success" id="insertBtn">Insert into Post</button>
-      </div>
-    </header>
-
-    <div class="subbar">
-      <div id="selectionStatus">No text selected</div>
-      <div class="subtools">
-        <button id="duplicateBtn">Duplicate</button>
-        <button id="deleteBtn">Delete</button>
-        <button data-menu="moreMenu">More ▾</button>
-      </div>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><strong>PostCard</strong><span>MyPoint.Cards</span></div>
+<div class="topActions">
+      <span id="siteBadge" hidden></span>
+      <button class="tool settingsCog" id="settingsBtn" title="AI automation settings">⚙</button>
+      <button class="tool" id="newSessionBtn">New</button>
+      <button class="tool" id="downloadBtn">⇩</button>
+      <button class="tool success" id="insertBtn">Insert into post</button>
     </div>
+  </header>
 
-    <main class="editorArea">
-      <div id="stageShell">
-        <div id="stage">
-          <div id="backgroundLayer"></div>
-          <div id="textLayer"></div>
-          <div id="poweredBy">Powered by MyPoint.Cards</div>
+  <main class="mainGrid">
+    <aside class="leftRail">
+      <button class="rail active" id="addTextBtn">A<span>Text</span></button>
+      <button class="rail" data-menu="imageMenu">▧<span>Image</span></button>
+      <button class="rail" id="webcamBtn">●<span>Video</span></button>
+      <button class="rail" id="slidesBtn">▤<span>Slides</span></button>
+      <button class="rail" data-menu="giphyMenu">GIF<span>GIF</span></button>
+      <button class="rail" data-menu="tableMenu">▦<span>Table</span></button>
+      <button class="rail" data-menu="emojiMenu">☺<span>Emoji</span></button>
+      <button class="rail" data-menu="backgroundMenu">◉<span>Backdrop</span></button>
+    </aside>
+
+    <section class="canvasPane">
+      <div class="canvasToolbar">
+        <button class="tool" data-menu="formatMenu" id="formatBtn">Landscape 16:9 ▾</button>
+        <button class="tool historyBtn" id="undoBtn" title="Undo (⌘/Ctrl+Z)" disabled>↶</button>
+        <button class="tool historyBtn" id="redoBtn" title="Redo (⌘/Ctrl+Shift+Z / Ctrl+Y)" disabled>↷</button>
+        <span id="selectionStatus">Click a text block to edit it</span>
+      </div>
+      <div class="editorArea">
+        <div id="stageShell">
+          <div id="stage">
+            <div id="backgroundLayer"></div>
+            <div id="textLayer"></div>
+            <div id="poweredBy">Powered by MyPoint.Cards</div>
+          </div>
         </div>
       </div>
-    </main>
+    </section>
 
-    <footer class="statusbar">
-      <div>
-        <span id="siteBadge">Checking active tab…</span>
+    <aside class="rightPanel">
+      <div class="panelHeader">
+        <strong>Text</strong>
+        <div><button id="duplicateBtn" title="Duplicate">⧉</button><button id="deleteBtn" title="Delete">⌫</button></div>
       </div>
-      <div class="caption">
-        <input id="postText" placeholder="Optional social post caption…" />
+
+      <label>Font</label>
+      <select id="fontFamily" class="fieldSelect fontDirectSelect">
+
+    <optgroup label="Latin">
+      <option value="Arial, sans-serif">Arial</option><option value="Roboto, sans-serif">Roboto</option><option value="'Roboto Condensed', sans-serif">Roboto Condensed</option><option value="'Bebas Neue', sans-serif">Bebas Neue</option><option value="Anton, sans-serif">Anton</option><option value="Oswald, sans-serif">Oswald</option><option value="Pacifico, cursive">Pacifico</option><option value="'Open Sans', sans-serif">Open Sans</option><option value="Lato, sans-serif">Lato</option><option value="Montserrat, sans-serif">Montserrat</option><option value="Poppins, sans-serif">Poppins</option><option value="Nunito, sans-serif">Nunito</option>
+    </optgroup>
+    <optgroup label="Bangla / বাংলা"><option value="'Noto Sans Bengali', sans-serif">Noto Sans Bengali</option><option value="'Hind Siliguri', sans-serif">Hind Siliguri</option><option value="'Tiro Bangla', serif">Tiro Bangla</option></optgroup>
+    <optgroup label="Chinese / 中文"><option value="'Noto Sans SC', sans-serif">Noto Sans SC</option><option value="'Noto Serif SC', serif">Noto Serif SC</option></optgroup>
+    <optgroup label="Japanese / 日本語"><option value="'Noto Sans JP', sans-serif">Noto Sans JP</option><option value="'Noto Serif JP', serif">Noto Serif JP</option></optgroup>
+    <optgroup label="Korean / 한국어"><option value="'Noto Sans KR', sans-serif">Noto Sans KR</option></optgroup>
+    <optgroup label="Arabic / العربية"><option value="'Noto Sans Arabic', sans-serif">Noto Sans Arabic</option><option value="'Noto Kufi Arabic', sans-serif">Noto Kufi Arabic</option><option value="Cairo, sans-serif">Cairo</option></optgroup>
+  
+      </select>
+
+      <label>Size</label>
+      <div class="sizeRow">
+        <button class="fieldButton" data-menu="sizeMenu" id="sizeBtn">56px ▾</button>
+        <button id="sizeMinus">−</button><button id="sizePlus">＋</button>
       </div>
-      <div id="status"></div>
-    </footer>
-  </div>
 
-  <!-- popovers -->
-  <div class="popover" id="fontMenu">
-    <div class="menuTitle">Font</div>
-    <select id="fontFamily">
-      <option value="Arial, sans-serif">Arial</option>
-      <option value="Roboto, sans-serif">Roboto</option>
-      <option value="'Roboto Condensed', sans-serif">Roboto Condensed</option>
-      <option value="'Bebas Neue', sans-serif">Bebas Neue</option>
-      <option value="Oswald, sans-serif">Oswald</option>
-      <option value="Pacifico, cursive">Pacifico</option>
-      <option value="'Open Sans', sans-serif">Open Sans</option>
-      <option value="Lato, sans-serif">Lato</option>
-      <option value="Montserrat, sans-serif">Montserrat</option>
-      <option value="Poppins, sans-serif">Poppins</option>
-      <option value="Nunito, sans-serif">Nunito</option>
-      <option value="'Noto Sans Bengali', sans-serif">Noto Sans Bengali</option>
-      <option value="'Noto Sans SC', sans-serif">Noto Sans SC</option>
-      <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
-      <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
-      <option value="'Noto Sans Arabic', sans-serif">Noto Sans Arabic</option>
-    </select>
-  </div>
-
-  <div class="popover" id="sizeMenu">
-    <div class="menuTitle">Font size</div>
-    <input id="fontSize" type="range" min="16" max="140" value="54">
-    <div class="rowBetween"><span>16</span><strong id="fontSizeValue">54px</strong><span>140</span></div>
-  </div>
-
-  <div class="popover compact" id="alignMenu">
-    <button data-align="left">Left</button>
-    <button data-align="center">Center</button>
-    <button data-align="right">Right</button>
-  </div>
-
-  <div class="popover" id="textColorMenu">
-    <div class="menuTitle">Text color</div>
-    <input id="textColor" type="color" value="#ffffff">
-  </div>
-
-  <div class="popover wide" id="backgroundMenu">
-    <div class="menuTitle">Background</div>
-    <div id="solidColors" class="swatches"></div>
-    <div class="menuTitle spaceTop">Gradients</div>
-    <div id="gradients" class="swatches"></div>
-    <div class="spaceTop inlineControls">
-      <input id="bgColor" type="color" value="#ed213a">
-      <button id="applyBgColor">Custom color</button>
-    </div>
-  </div>
-
-  <div class="popover wide" id="imageMenu">
-    <div class="menuTitle">Image background</div>
-    <input id="imageUpload" type="file" accept="image/*">
-    <div class="spaceTop">
-      <label>Scale</label>
-      <div class="buttonRow">
-        <button data-scale="contain" class="active">Contain</button>
-        <button data-scale="cover">Cover</button>
-        <button data-scale="actual">Actual</button>
+      <label>Style</label>
+      <div class="buttonGrid3">
+        <button class="tool icon" id="boldBtn"><b>B</b></button>
+        <button class="tool icon" id="italicBtn"><i>I</i></button>
+        <button class="tool icon" data-menu="moreMenu">•••</button>
       </div>
+
+      <label>Align</label>
+      <div class="buttonGrid3">
+        <button class="tool" data-align="left">≡</button>
+        <button class="tool" data-align="center">≡</button>
+        <button class="tool" data-align="right">≡</button>
+      </div>
+
+      <label>Color</label>
+      <button class="fieldButton" data-menu="textColorMenu" id="textColorBtn"><span class="dot" id="textColorDot"></span> Text color</button>
+
+      <label>Effects</label>
+      <div class="buttonGrid2">
+        <button id="shadowQuick">Shadow</button>
+        <button data-menu="moreMenu">More</button>
+      </div>
+
+      <div id="tableInspector" class="tableInspector hidden">
+        <div class="inspectorDivider"></div>
+        <div class="panelHeader tablePanelHeader">
+          <strong>Table</strong>
+          <div><button id="deleteTableBtn" class="dangerSmall">Delete</button></div>
+        </div>
+
+        <label>Cell font</label>
+        <select id="tableFontFamily" class="fieldSelect">
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="Roboto, sans-serif">Roboto</option>
+          <option value="'Roboto Condensed', sans-serif">Roboto Condensed</option>
+          <option value="Montserrat, sans-serif">Montserrat</option>
+          <option value="Poppins, sans-serif">Poppins</option>
+          <option value="'Noto Sans Bengali', sans-serif">Noto Sans Bengali</option>
+          <option value="'Hind Siliguri', sans-serif">Hind Siliguri</option>
+          <option value="'Noto Sans SC', sans-serif">Noto Sans SC</option>
+          <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+          <option value="'Noto Sans Arabic', sans-serif">Noto Sans Arabic</option>
+        </select>
+
+        <div class="sizeRow">
+          <div><label>Font size</label><input id="tableFontSize" type="number" min="8" max="96" value="28"></div>
+          <div><label>Text color</label><input id="tableTextColor" type="color" value="#ffffff"></div>
+        </div>
+
+        <label>Border size <span id="tableBorderSizeValue">2px</span></label>
+        <input id="tableBorderSize" type="range" min="0" max="20" step="1" value="2">
+
+        <label>Background color</label>
+        <input id="tableBgColor" type="color" value="#1f2937">
+
+        <label class="check"><input id="tableHeaderToggle" type="checkbox"> Treat first row as header</label>
+
+        <label>Table template</label>
+        <select id="tableTemplate" class="fieldSelect">
+          <option value="clean">Clean</option>
+          <option value="midnight">Midnight</option>
+          <option value="ocean">Ocean</option>
+          <option value="emerald">Emerald</option>
+          <option value="sunset">Sunset</option>
+          <option value="slate">Slate</option>
+          <option value="glass">Glass</option>
+        </select>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="statusbar">
+    <div class="caption"><input id="postText" placeholder="Add a caption to your post"></div>
+    <div class="footerMeta">
+      <span id="status"></span>
+      <button class="footerLink" id="creditsBtn">Credits</button>
+      <span>v0.8.3</span>
+      <span>MIT License</span>
     </div>
-    <div class="spaceTop">
-      <label>Darkness <span id="darknessValue">20%</span></label>
-      <input id="darkness" type="range" min="0" max="80" step="5" value="20">
+  </footer>
+</div>
+
+<!-- popovers -->
+  <select id="fontFamily">
+    <optgroup label="Latin">
+      <option value="Arial, sans-serif">Arial</option><option value="Roboto, sans-serif">Roboto</option><option value="'Roboto Condensed', sans-serif">Roboto Condensed</option><option value="'Bebas Neue', sans-serif">Bebas Neue</option><option value="Anton, sans-serif">Anton</option><option value="Oswald, sans-serif">Oswald</option><option value="Pacifico, cursive">Pacifico</option><option value="'Open Sans', sans-serif">Open Sans</option><option value="Lato, sans-serif">Lato</option><option value="Montserrat, sans-serif">Montserrat</option><option value="Poppins, sans-serif">Poppins</option><option value="Nunito, sans-serif">Nunito</option>
+    </optgroup>
+    <optgroup label="Bangla / বাংলা"><option value="'Noto Sans Bengali', sans-serif">Noto Sans Bengali</option><option value="'Hind Siliguri', sans-serif">Hind Siliguri</option><option value="'Tiro Bangla', serif">Tiro Bangla</option></optgroup>
+    <optgroup label="Chinese / 中文"><option value="'Noto Sans SC', sans-serif">Noto Sans SC</option><option value="'Noto Serif SC', serif">Noto Serif SC</option></optgroup>
+    <optgroup label="Japanese / 日本語"><option value="'Noto Sans JP', sans-serif">Noto Sans JP</option><option value="'Noto Serif JP', serif">Noto Serif JP</option></optgroup>
+    <optgroup label="Korean / 한국어"><option value="'Noto Sans KR', sans-serif">Noto Sans KR</option></optgroup>
+    <optgroup label="Arabic / العربية"><option value="'Noto Sans Arabic', sans-serif">Noto Sans Arabic</option><option value="'Noto Kufi Arabic', sans-serif">Noto Kufi Arabic</option><option value="Cairo, sans-serif">Cairo</option></optgroup>
+  </select>
+</div>
+
+<div class="popover" id="sizeMenu"><div class="menuTitle">Font size</div><input id="fontSize" type="range" min="16" max="140" value="54"><div class="rowBetween"><span>16</span><strong id="fontSizeValue">54px</strong><span>140</span></div></div>
+<div class="popover" id="textColorMenu"><div class="menuTitle">Text color</div><input id="textColor" type="color" value="#ffffff"></div>
+
+<div class="popover wide" id="backgroundMenu">
+  <div class="menuTitle">Background</div><div id="solidColors" class="swatches"></div>
+  <div class="menuTitle spaceTop">Gradients</div><div id="gradients" class="swatches"></div>
+  <div class="spaceTop inlineControls"><input id="bgColor" type="color" value="#ed213a"><button id="applyBgColor">Custom color</button></div>
+</div>
+
+<div class="popover wide" id="imageMenu">
+  <div class="menuTitle">Image background</div><input id="imageUpload" type="file" accept="image/*">
+  <div class="spaceTop"><label>Scale</label><div class="buttonRow"><button data-scale="contain" class="active">Contain</button><button data-scale="cover">Cover</button><button data-scale="actual">Actual</button></div></div>
+  <div class="spaceTop"><label>Darkness <span id="darknessValue">20%</span></label><input id="darkness" type="range" min="0" max="80" step="5" value="20"></div>
+  <div class="spaceTop inlineControls"><input id="featuredSearch" placeholder="Search featured images"><button id="featuredBtn">Search</button></div><div id="featuredResults" class="imageGrid"></div>
+</div>
+
+<div class="popover wide" id="giphyMenu">
+  <div class="menuTitle">Animated GIF</div><div class="inlineControls"><input id="giphySearch" placeholder="Search Giphy"><button id="giphyBtn">Search</button></div>
+  <div id="giphyResults" class="imageGrid"></div><div class="spaceTop"><button id="removeGifBtn">Remove GIF</button></div>
+</div>
+
+<div class="popover" id="tableMenu"><div class="menuTitle">Insert table</div><div class="tablePresets"><button data-table="2x2">2×2</button><button data-table="3x3">3×3</button><button data-table="4x4">4×4</button></div><div class="spaceTop smallNote">Double-click cells to edit. Drag the table to move it.</div></div>
+
+  <div class="buttonRow spaceTop"><button id="addSlideBtn">+ Slide</button><button id="dupSlideBtn">Duplicate</button><button id="delSlideBtn">Delete</button></div>
+  <label class="spaceTop">Slide duration <span id="slideDurationValue">3s</span></label><input id="slideDuration" type="range" min="1" max="10" value="3">
+</div>
+
+<div class="popover wide" id="emojiMenu"><div class="menuTitle">Emoji</div><div id="emojiGrid" class="emojiGrid"></div></div>
+<div class="popover compact" id="formatMenu"><button data-format="landscape">Landscape</button><button data-format="square">Square</button><button data-format="portrait">Portrait</button></div>
+
+<div class="popover" id="moreMenu">
+  <label>Text width <span id="widthValue">70%</span></label><input id="textWidth" type="range" min="20" max="95" value="70">
+  <label class="spaceTop">Line height <span id="lineHeightValue">1.2</span></label><input id="lineHeight" type="range" min="0.8" max="2.2" step="0.1" value="1.2">
+  <label class="check spaceTop"><input id="shadowToggle" type="checkbox" checked> Text shadow</label>
+  <label class="check"><input id="poweredByToggle" type="checkbox"> Powered by MyPoint.Cards</label>
+</div>
+
+
+<dialog id="creditsDialog" class="creditsDialog creditCardDialog">
+  <div class="creditHero">
+    <button id="closeCreditsBtn" class="creditClose">✕</button>
+    <div class="creditIcon">▤</div>
+    <div class="creditWordmark">POSTCARD</div>
+    <h2>Make your point stand out.</h2>
+    <p class="creditTagline">A canvas-first social card editor for creating rich images, tables, GIFs, slides and video directly from your browser.</p>
+
+    <div class="creditBox">
+      <div class="creditLabel">CREDITS</div>
+      <strong>Imagined by Mohammed Kabir</strong>
+      <span>Developed by his agents.</span>
     </div>
-    <div class="spaceTop inlineControls">
-      <input id="featuredSearch" placeholder="Search featured images">
-      <button id="featuredBtn">Search</button>
+
+    <div class="creditLinks">
+      <a href="https://eatsleepai.us/" target="_blank">Kabir's website</a>
+      <a href="https://github.com/evoknow-ai/postcard/blob/main/README.md" target="_blank">Changelog</a>
+      <a href="https://github.com/evoknow-ai/postcard" target="_blank">GitHub</a>
     </div>
-    <div id="featuredResults" class="imageGrid"></div>
+
+    <div class="creditVersion">Version 0.8.3 · MIT License</div>
+  </div>
+</dialog>
+
+
+<dialog id="webcamDialog" class="webcamDialog">
+  <div class="webcamHeader">
+    <div>
+      <strong>Record Video</strong>
+      <span>Webcam video with baked-in text overlay</span>
+    </div>
+    <button id="webcamCloseBtn" class="webcamClose">✕</button>
   </div>
 
-  <div class="popover wide" id="emojiMenu">
-    <div class="menuTitle">Emoji</div>
-    <div id="emojiGrid" class="emojiGrid"></div>
-  </div>
+  <div class="webcamBody">
+    <div class="webcamPreviewWrap">
+      <canvas id="webcamCanvas" width="1280" height="720"></canvas>
+      <div id="recordingBadge" class="recordingBadge" hidden>● REC <span id="recordingTime">00:00</span></div>
+      <div id="cameraHint" class="cameraHint">Click “Start camera” to preview your webcam.</div>
+    </div>
 
-  <div class="popover compact" id="formatMenu">
-    <button data-format="landscape">Landscape</button>
-    <button data-format="square">Square</button>
-    <button data-format="portrait">Portrait</button>
-  </div>
+    <div class="webcamControls">
+      <label>Overlay text
+        <textarea id="webcamOverlayText" rows="3" placeholder="Type text to place over your video…"></textarea>
+      </label>
 
-  <div class="popover" id="moreMenu">
-    <label>Text width <span id="widthValue">70%</span></label>
-    <input id="textWidth" type="range" min="20" max="95" value="70">
-    <label class="spaceTop">Line height <span id="lineHeightValue">1.2</span></label>
-    <input id="lineHeight" type="range" min="0.8" max="2.2" step="0.1" value="1.2">
-    <label class="check spaceTop"><input id="shadowToggle" type="checkbox" checked> Text shadow</label>
-    <label class="check"><input id="poweredByToggle" type="checkbox"> Powered by MyPoint.Cards</label>
-  </div>
+      <div class="webcamDeviceGrid">
+        <label>Camera
+          <select id="webcamCameraSelect"><option value="">Default camera</option></select>
+        </label>
+        <label>Microphone
+          <select id="webcamMicSelect"><option value="">Default microphone</option></select>
+        </label>
+      </div>
 
-  <canvas id="exportCanvas" hidden></canvas>
-  <script src="editor.js"></script>
+      <div class="webcamControlGrid">
+        <label>Position
+          <select id="webcamTextPosition">
+            <option value="bottom">Bottom</option>
+            <option value="center">Center</option>
+            <option value="top">Top</option>
+          </select>
+        </label>
+        <label>Font size
+          <select id="webcamFontSize">
+            <option value="40">40 px</option>
+            <option value="52" selected>52 px</option>
+            <option value="64">64 px</option>
+            <option value="80">80 px</option>
+            <option value="96">96 px</option>
+          </select>
+        </label>
+        <label>Text color
+          <input id="webcamTextColor" type="color" value="#ffffff">
+        </label>
+        <label class="check webcamAudio"><input id="webcamAudio" type="checkbox" checked> Microphone</label>
+      </div>
+
+      <div class="webcamActions">
+        <button id="startCameraBtn" class="primaryAction">Start camera</button>
+        <button id="startRecordingBtn" disabled>Record</button>
+        <button id="stopRecordingBtn" disabled>Stop</button>
+        <button id="retakeVideoBtn" disabled>Retake</button>
+      </div>
+
+      <div id="recordedActions" class="recordedActions" hidden>
+        <button id="downloadRecordedVideoBtn">Download video</button>
+        <button id="insertRecordedVideoBtn" class="primaryAction">Insert video into post</button>
+      </div>
+
+      <div id="webcamStatus" class="webcamStatus"></div>
+      <div class="webcamNote">Recording is limited to 60 seconds. The text overlay is rendered directly into the exported video.</div>
+    </div>
+  </div>
+</dialog>
+
+<canvas id="exportCanvas" hidden></canvas>
+<script src="editor.js"></script>
+<div hidden>
+<input id="slideDuration" type="range" min="1" max="10" value="3">
+<span id="slideDurationValue">3s</span>
+<div id="slideList"></div>
+</div>
 </body>
 </html>

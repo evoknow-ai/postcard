@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PostCard Slides</title>
+<link rel="stylesheet" href="slides.css">
+</head>
+<body>
+<div class="slidesApp">
+  <header class="slidesTop">
+    <div class="brand"><strong>PostCard Slides</strong><span>Create, arrange and export your slide video.</span></div>
+    <div class="topActions">
+      <button id="backBtn">← Back to editor</button>
+      <button id="exportBtn" class="primary">Export video</button>
+    </div>
+  </header>
+
+  <main class="slidesGrid">
+    <aside class="thumbRail">
+      <div class="railHeader"><strong>Slides</strong><button id="addBtn" title="Add slide">＋</button></div>
+      <div id="thumbList" class="thumbList"></div>
+    </aside>
+
+    <section class="previewPane">
+      <div class="previewToolbar">
+        <button id="prevBtn">←</button>
+        <span id="slideCounter">Slide 1 of 1</span>
+        <button id="nextBtn">→</button>
+      </div>
+      <div class="previewShell"><canvas id="previewCanvas" width="1280" height="720"></canvas></div>
+      <div id="exportStatus" class="status"></div>
+    </section>
+
+    <aside class="slidePanel">
+      <h2>Slide</h2>
+      <label>Duration <span id="durationValue">3s</span></label>
+      <input id="duration" type="range" min="1" max="10" value="3">
+      <div class="panelButtons">
+        <button id="editBtn" class="primary">Edit slide</button>
+        <button id="duplicateBtn">Duplicate</button>
+        <button id="deleteBtn">Delete</button>
+      </div>
+      <h3>Order</h3>
+      <div class="panelButtons two">
+        <button id="moveUpBtn">↑ Earlier</button>
+        <button id="moveDownBtn">↓ Later</button>
+      </div>
+      <p class="hint">Drag slide thumbnails to reorder.</p>
+    </aside>
+  </main>
+</div>
+<canvas id="exportCanvas" hidden></canvas>
+<script src="slides.js"></script>
+</body>
+</html>

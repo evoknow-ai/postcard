@@ -1,21 +1,30 @@
 {
   "manifest_version": 3,
   "name": "PostCard",
-  "version": "0.4.2",
+  "version": "0.8.31",
   "description": "Create beautiful text cards and insert them directly into social media posts.",
   "permissions": [
     "activeTab",
-    "storage",
+    "alarms",
     "contextMenus",
-    "scripting"
+    "scripting",
+    "storage",
+    "system.display",
+    "tabs"
   ],
   "host_permissions": [
+    "https://*.giphy.com/*",
+    "https://api.anthropic.com/*",
     "https://api.giphy.com/*",
+    "https://api.openai.com/*",
     "https://bsky.app/*",
-    "https://featured.mypoint.cards/*",
+    "https://fonts.googleapis.com/*",
+    "https://fonts.gstatic.com/*",
+    "https://instagram.com/*",
     "https://reddit.com/*",
     "https://twitter.com/*",
     "https://www.facebook.com/*",
+    "https://www.instagram.com/*",
     "https://www.linkedin.com/*",
     "https://www.reddit.com/*",
     "https://x.com/*"
@@ -35,13 +44,15 @@
   "content_scripts": [
     {
       "matches": [
-        "https://x.com/*",
-        "https://twitter.com/*",
-        "https://www.linkedin.com/*",
-        "https://www.facebook.com/*",
-        "https://www.reddit.com/*",
+        "https://bsky.app/*",
+        "https://instagram.com/*",
         "https://reddit.com/*",
-        "https://bsky.app/*"
+        "https://twitter.com/*",
+        "https://www.facebook.com/*",
+        "https://www.instagram.com/*",
+        "https://www.linkedin.com/*",
+        "https://www.reddit.com/*",
+        "https://x.com/*"
       ],
       "js": [
         "content.js"
@@ -54,5 +65,32 @@
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://api.anthropic.com https://api.openai.com https://*.giphy.com https://api.giphy.com https://featured.mypoint.cards https://fonts.googleapis.com https://fonts.gstatic.com;"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "recorder.html",
+        "recorder.css",
+        "recorder.js",
+        "vendor/mediapipe/selfie_multiclass_256x256.tflite"
+      ],
+      "matches": [
+        "https://*/*"
+      ]
+    },
+    {
+      "resources": [
+        "vendor/mediapipe/vision_bundle.mjs",
+        "vendor/mediapipe/wasm/*",
+        "vendor/mediapipe/selfie_segmenter.tflite",
+        "vendor/mediapipe/selfie_multiclass_256x256.tflite"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }

@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PostCard AI Automation</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <main class="settingsApp">
+    <header>
+      <div>
+        <h1>PostCard <span>AI Automation</span></h1>
+        <p>Generate a PostCard and publish it automatically on your schedule.</p>
+      </div>
+      <div class="statusPill" id="saveState">Not saved</div>
+    </header>
+
+    <section class="card">
+      <div class="sectionHead"><div><h2>AI Provider</h2><p>API keys stay in Chrome local storage on this computer.</p></div><label class="switch"><input id="enabled" type="checkbox"><span></span><b>Automation enabled</b></label></div>
+      <div class="grid2">
+        <label>Provider
+          <select id="provider"><option value="openai">OpenAI</option><option value="anthropic">Claude / Anthropic</option></select>
+        </label>
+        <label>Model
+          <select id="modelPreset"></select>
+          <input id="modelCustom" class="modelCustom" placeholder="Custom model ID" hidden>
+        </label>
+      </div>
+      <label>API key
+        <div class="keyRow"><input id="apiKey" type="password" autocomplete="off" placeholder="Paste API key"><button id="toggleKey" type="button">Show</button></div>
+      </label>
+      <label>Prompt / topic instructions
+        <textarea id="prompt" rows="6" placeholder="Example: Write a useful daily post about AI agents for software developers. Be specific, practical, and avoid hype."></textarea>
+      </label>
+      <div class="checks"><label><input id="useCurrentDesign" type="checkbox" checked> Use my current PostCard design as the visual template</label></div>
+    </section>
+
+    <section class="card">
+      <div class="sectionHead"><div><h2>Destination</h2><p>PostCard will open the chosen site, create the post, attach the generated card, and click Post/Share.</p></div></div>
+      <div class="platforms">
+        <label><input type="radio" name="platform" value="x" checked><span>𝕏</span><b>X</b></label>
+        <label><input type="radio" name="platform" value="facebook"><span>f</span><b>Facebook</b></label>
+        <label><input type="radio" name="platform" value="instagram"><span>◎</span><b>Instagram</b></label>
+      </div>
+      <p class="notice">You must already be signed in to the selected social network in Chrome. Scheduled posting uses the website UI, so site changes can occasionally require selector updates.</p>
+    </section>
+
+    <section class="card">
+      <div class="sectionHead"><div><h2>Schedule</h2><p>Choose recurring weekdays or one specific date and time.</p></div></div>
+      <div class="scheduleType">
+        <label><input type="radio" name="scheduleType" value="recurring" checked> Recurring</label>
+        <label><input type="radio" name="scheduleType" value="once"> One-time</label>
+      </div>
+      <div id="recurringBox">
+        <div class="days" id="days">
+          <label><input type="checkbox" value="1" checked>Mon</label><label><input type="checkbox" value="2" checked>Tue</label><label><input type="checkbox" value="3" checked>Wed</label><label><input type="checkbox" value="4" checked>Thu</label><label><input type="checkbox" value="5" checked>Fri</label><label><input type="checkbox" value="6">Sat</label><label><input type="checkbox" value="0">Sun</label>
+        </div>
+        <div class="timeRow singleTime">
+          <label>Post at
+            <select id="postTime"></select>
+          </label>
+          <div class="timezoneBox">
+            <span>Timezone</span>
+            <strong id="timezoneName">Local time</strong>
+          </div>
+        </div>
+      </div>
+      <div id="onceBox" hidden>
+        <label>Post on <input id="onceAt" type="datetime-local" step="900"></label><div class="timezoneBox onceZone"><span>Timezone</span><strong id="timezoneNameOnce">Local time</strong></div>
+      </div>
+      <div class="nextRun"><strong id="scheduleSummary">Schedule not configured.</strong><span id="nextRun">Next run: —</span></div>
+    </section>
+
+    <section class="card">
+      <div class="sectionHead"><div><h2>Test & Run</h2><p>Test generation without posting, or run the complete workflow now.</p></div></div>
+      <div class="actions">
+        <button id="testAi" class="secondary">Test AI</button>
+        <button id="runNow" class="warning">Run & Post Now</button>
+        <button id="save" class="primary">Save Configuration</button>
+      </div>
+      <div id="testResult" class="result" hidden></div>
+    </section>
+
+    <section class="card">
+      <div class="sectionHead"><div><h2>Execution History</h2><p>Most recent generation and posting attempts.</p></div><button id="clearHistory" class="ghost">Clear</button></div>
+      <div id="history" class="history"><div class="empty">No runs yet.</div></div>
+    </section>
+
+    <footer>PostCard v0.7.2 · MIT License · AI API usage is billed by your selected provider.</footer>
+  </main>
+  <script src="settings.js"></script>
+</body>
+</html>

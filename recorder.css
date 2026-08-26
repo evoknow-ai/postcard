@@ -1,0 +1,76 @@
+
+:root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:#0f1012;color:#eee}
+body{min-height:100vh}.recorderApp{max-width:1360px;margin:0 auto;padding:18px}
+header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+h1{margin:0;font-size:25px}header p{margin:3px 0 0;color:#8f939b;font-size:12px}
+.backLink{background:transparent;border:0;color:#8db7ff;cursor:pointer;padding:8px 10px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+.previewPanel,.controls{background:#18191c;border:1px solid #303238;border-radius:14px}
+.previewPanel{padding:14px;position:relative}
+.preview{position:relative;aspect-ratio:16/9;background:#050506;border-radius:10px;overflow:hidden}
+#cameraPreview,#recordCanvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#cameraPreview{opacity:0}
+.cameraHint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#777;font-size:12px}
+#cameraHint[hidden],#recordingBadge[hidden],[hidden]{display:none!important}
+.recordingBadge{position:absolute;top:12px;left:12px;background:#000b;padding:7px 10px;border-radius:999px;color:#ff6670;font-size:12px;font-weight:700}
+#recordCanvas{touch-action:none;cursor:default}
+#recordCanvas.cursor-text-drag{cursor:grab}
+#recordCanvas.cursor-video-drag{cursor:move}
+#recordCanvas.dragging-overlay,#recordCanvas.dragging-video{cursor:grabbing!important}
+
+.videoToolbar{display:flex;gap:7px;align-items:center;padding-top:10px;flex-wrap:wrap}
+.videoToolbar button,.toolPopover button,.buttons button{
+  background:#292b30;border:1px solid #41444b;color:#eee;border-radius:8px;padding:8px 11px;cursor:pointer
+}
+.videoToolbar button{font-size:12px;padding:7px 10px}
+.videoToolbar button.active,.videoToolbar button:hover{border-color:#4d8fe8;background:#202a39}
+button.primary{background:#1976d2;border-color:#1976d2}
+button:disabled{opacity:.4;cursor:not-allowed}
+
+.toolPopover{
+  position:absolute;z-index:30;left:14px;bottom:54px;width:260px;
+  padding:12px;background:#1b1d21;border:1px solid #3a3d44;border-radius:10px;
+  box-shadow:0 16px 40px rgba(0,0,0,.5)
+}
+.backgroundPopover{width:300px}
+.popoverTitle{font-size:12px;font-weight:700;margin-bottom:9px}
+.toolPopover label{display:block;font-size:11px;color:#aaa;margin-top:9px}
+.toolPopover input[type=range]{width:100%;margin-top:8px}
+.toolPopover input[type=file]{width:100%;margin-top:6px;padding:7px;border:1px solid #3b3e45;border-radius:7px;background:#24262b;color:#ddd}
+.toolPopover input[type=color]{width:100%;height:38px;margin-top:6px;border:1px solid #3b3e45;border-radius:7px;background:#24262b;padding:2px}
+.rangeValue{display:block;margin-top:4px;font-size:11px;color:#9ea4ad}
+.bgModes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.bgModes button{padding:7px 5px;font-size:11px}
+.bgModes button.active{background:#1976d2;border-color:#1976d2}
+#backgroundImageControls>button{margin-top:8px}
+
+.controls{padding:16px}
+.controls label{display:block;font-size:12px;color:#aaa;margin-bottom:12px}
+.controls select,.controls textarea{width:100%;margin-top:6px;background:#24262b;border:1px solid #3b3e45;border-radius:8px;color:#fff;padding:9px}
+.controls textarea{resize:vertical}
+.controls input[type=color]{width:100%;height:38px;margin-top:6px;background:#24262b;border:1px solid #3b3e45;border-radius:8px;padding:2px}
+.controls input[type=range]{width:100%;margin-top:9px}
+.deviceRow{display:grid;grid-template-columns:1fr;gap:0}
+.check{display:flex!important;align-items:center;gap:8px}.micCheck{margin-top:-2px}
+.buttons{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.status{min-height:18px;margin-top:11px;font-size:11px;color:#8bd6a8}
+.fontSizeControl .rangeValue{margin-top:3px}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .controls{order:2}
+}
+
+/* v0.8.18 MediaPipe background UI */
+.backgroundPopover{
+  position:static!important;
+  width:auto!important;
+  margin-top:8px;
+  box-shadow:none!important;
+  background:#15171b!important;
+  border:1px solid #2a2f3a!important;
+}
+.bgModes{display:inline-flex!important;background:#1a1d24;border:1px solid #2a2f3a;border-radius:8px;padding:2px;gap:2px}
+.bgModes button{border:0!important;background:transparent!important;color:#8b93a3!important;padding:6px 14px!important}
+.bgModes button.active{background:#4f8cff!important;color:#fff!important}
+#blurControls,#backgroundColorControls,#backgroundImageControls{margin-top:8px}

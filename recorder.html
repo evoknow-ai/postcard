@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PostCard Video Recorder</title>
+  <link rel="stylesheet" href="recorder.css">
+</head>
+
+<body>
+  <main class="recorderApp">
+    <header>
+      <div><h1>PostCard Video</h1><p>Record your webcam with a text overlay.</p></div>
+      <button class="backLink" id="backToEditor">← Back to editor</button>
+    </header>
+
+    <section class="layout">
+      <div class="previewPanel">
+        <div class="preview">
+          <video id="cameraPreview" autoplay muted playsinline></video>
+          <canvas id="recordCanvas" width="1280" height="720"></canvas>
+          <div id="recordingBadge" class="recordingBadge" hidden>● REC <span id="recordingTime">00:00</span></div>
+          <div id="cameraHint" class="cameraHint">Choose a camera and click Start camera.</div>
+        </div>
+
+        <input id="videoFit" type="hidden" value="cover">
+        <input id="mirrorVideo" type="checkbox" checked hidden>
+
+        <div class="videoToolbar">
+          <button id="fitBtn" type="button" title="Fit mode">▣ <span id="fitLabel">Cover</span></button>
+          <button id="zoomBtn" type="button" title="Zoom">⌕ <span id="zoomLabel">1.00×</span></button>
+          <button id="mirrorBtn" type="button" class="active" title="Mirror camera">↔ Mirror</button>
+          <button id="backgroundBtn" type="button" title="Background">◐ Background</button>
+          <button id="resetFraming" type="button" title="Reset framing">↺ Reset</button>
+        </div>
+
+        <div id="zoomPopover" class="toolPopover" hidden>
+          <div class="popoverTitle">Zoom</div>
+          <input id="videoZoom" type="range" min="1" max="3" step="0.05" value="1">
+          <span id="videoZoomValue" class="rangeValue">1.00×</span>
+        </div>
+
+        <div id="backgroundPopover" class="toolPopover backgroundPopover" hidden>
+          <div class="popoverTitle">Background</div>
+          <div class="bgModes">
+            <button type="button" data-bg="none" class="active">None</button>
+            <button type="button" data-bg="blur">Blur</button>
+            <button type="button" data-bg="color">Color</button>
+            <button type="button" data-bg="image">Image</button>
+          </div>
+
+          <select id="backgroundMode" hidden>
+            <option value="none" selected>None</option>
+            <option value="blur">Blur</option>
+            <option value="color">Color</option>
+            <option value="image">Image</option>
+          </select>
+
+          <div id="blurControls" hidden>
+            <label>Strength
+              <input id="blurStrength" type="range" min="4" max="24" step="1" value="14">
+              <span id="blurStrengthValue" class="rangeValue">14 px</span>
+            </label>
+          </div>
+
+          <div id="backgroundColorControls" hidden>
+            <label>Color
+              <input id="backgroundColor" type="color" value="#1d3557">
+            </label>
+          </div>
+
+          <div id="backgroundImageControls" hidden>
+            <label>Image
+              <input id="backgroundImageFile" type="file" accept="image/*">
+            </label>
+            <button id="removeBackgroundImage" type="button" disabled>Remove image</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="controls">
+        <div class="deviceRow">
+          <label>Camera
+            <select id="cameraSelect"><option value="">Default camera</option></select>
+          </label>
+          <label>Microphone
+            <select id="micSelect"><option value="">Default microphone</option></select>
+          </label>
+        </div>
+
+        <label class="check micCheck"><input id="useMic" type="checkbox" checked> Record microphone</label>
+
+        <label>Overlay text
+          <textarea id="overlayText" rows="4" placeholder="Type text to place over your video…"></textarea>
+        </label>
+
+        <label class="fontSizeControl">Font size
+          <input id="fontSize" type="range" min="20" max="140" step="2" value="52">
+          <span id="fontSizeValue" class="rangeValue">52 px</span>
+        </label>
+
+        <label>Text color
+          <input id="textColor" type="color" value="#ffffff">
+        </label>
+
+        <div class="buttons recordButtons">
+          <button id="startCamera" class="primary">Start camera</button>
+          <button id="record" disabled>Record</button>
+          <button id="stop" disabled>Stop</button>
+          <button id="retake" disabled>Retake</button>
+        </div>
+
+        <div id="afterRecord" class="buttons" hidden>
+          <button id="download">Download video</button>
+          <button id="insert" class="primary">Insert video into post</button>
+        </div>
+
+        <div id="status" class="status"></div>
+      </aside>
+    </section>
+  </main>
+  <script type="module" src="recorder.js"></script>
+</body>
+</html>
