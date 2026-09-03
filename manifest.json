@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PostCard",
-  "version": "0.8.31",
+  "version": "0.9.1",
   "description": "Create beautiful text cards and insert them directly into social media posts.",
   "permissions": [
     "activeTab",

@@ -55,7 +55,12 @@
     <aside class="rightPanel">
       <div class="panelHeader">
         <strong>Text</strong>
-        <div><button id="duplicateBtn" title="Duplicate">⧉</button><button id="deleteBtn" title="Delete">⌫</button></div>
+        <div class="selectionActions hidden" id="selectionActions">
+          <button id="duplicateBtn" title="Duplicate selected object" aria-label="Duplicate selected object">⧉</button>
+          <button id="deleteBtn" class="trashBtn" title="Delete selected object" aria-label="Delete selected object">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-3 6h12l-1 12H7L6 9Zm3 2v7h2v-7H9Zm4 0v7h2v-7h-2Z"/></svg>
+          </button>
+        </div>
       </div>
 
       <label>Font</label>
@@ -154,7 +159,7 @@
     <div class="footerMeta">
       <span id="status"></span>
       <button class="footerLink" id="creditsBtn">Credits</button>
-      <span>v0.8.3</span>
+      <span>v0.9.1</span>
       <span>MIT License</span>
     </div>
   </footer>
@@ -228,10 +233,11 @@
     <div class="creditLinks">
       <a href="https://eatsleepai.us/" target="_blank">Kabir's website</a>
       <a href="https://github.com/evoknow-ai/postcard/blob/main/README.md" target="_blank">Changelog</a>
+      <a href="privacy.html" target="_blank">Privacy</a>
       <a href="https://github.com/evoknow-ai/postcard" target="_blank">GitHub</a>
     </div>
 
-    <div class="creditVersion">Version 0.8.3 · MIT License</div>
+    <div class="creditVersion">Version 0.9.1 · MIT License</div>
   </div>
 </dialog>
 

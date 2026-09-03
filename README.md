@@ -531,3 +531,13 @@ PostCard has been reimagined as a desktop rich-canvas editor.
 - Removed invalid `saveState()` call.
 - Added globally defined `RETURN_TO_SLIDES_KEY`.
 - Both Slides navigation paths now use the editor's existing save mechanism before navigation.
+
+## v0.9.1
+
+- Added native copy, cut, and paste for selected text/table objects.
+- Pasting plain text on the canvas creates a new text block.
+- Pasting an image on the canvas uses it as the image background.
+- Added a contextual trash icon for the selected canvas object.
+- Delete/Backspace removes a selected object when not editing its contents; Cmd/Ctrl+X cuts it.
+- Fixed mouse text selection by preserving native pointer behavior while a text block is being edited.
+- Added a publishable privacy policy for the Chrome Web Store listing.

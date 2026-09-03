@@ -143,25 +143,34 @@ function isEditingField(){
   const a=document.activeElement;
   return !!a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
 }
-function copySelectedObject(){
+function clipboardPayload(){
   const b=selected();
   const t=selectedTable();
-  if(b){
-    objectClipboard={type:"text",data:cloneForHistory(b)};
-    setStatus("Text copied.");
-    return true;
-  }
-  if(t){
-    objectClipboard={type:"table",data:cloneForHistory(t)};
-    setStatus("Table copied.");
-    return true;
-  }
-  return false;
+  if(b) return {type:"text",data:cloneForHistory(b)};
+  if(t) return {type:"table",data:cloneForHistory(t)};
+  return null;
 }
-function pasteSelectedObject(){
-  if(!objectClipboard) return false;
-  if(objectClipboard.type==="text"){
-    const src=cloneForHistory(objectClipboard.data);
+function clipboardPlainText(payload){
+  if(payload?.type==="text") return payload.data.text||"";
+  if(payload?.type==="table") return payload.data.cells.map(row=>row.join("\t")).join("\n");
+  return "";
+}
+function writeObjectClipboard(e,payload){
+  objectClipboard=payload;
+  e.clipboardData?.setData("text/plain",clipboardPlainText(payload));
+  try{e.clipboardData?.setData("application/x-postcard-object",JSON.stringify(payload));}catch(_){}
+}
+function copySelectedObject(){
+  const payload=clipboardPayload();
+  if(!payload)return false;
+  objectClipboard=payload;
+  setStatus(`${payload.type==="text"?"Text":"Table"} copied.`);
+  return true;
+}
+function pasteSelectedObject(payload=objectClipboard){
+  if(!payload) return false;
+  if(payload.type==="text"){
+    const src=cloneForHistory(payload.data);
     src.id=nextId++;
     src.x=Math.min(92,(src.x||50)+4);
     src.y=Math.min(92,(src.y||50)+4);
@@ -171,8 +180,8 @@ function pasteSelectedObject(){
     setStatus("Text pasted.");
     return true;
   }
-  if(objectClipboard.type==="table"){
-    const src=cloneForHistory(objectClipboard.data);
+  if(payload.type==="table"){
+    const src=cloneForHistory(payload.data);
     src.id=nextTableId++;
     src.x=Math.min(92,(src.x||50)+4);
     src.y=Math.min(92,(src.y||50)+4);
@@ -333,8 +342,8 @@ function placeCaretFromPoint(el,x,y){
 }
 function wireTextBlock(el){
   const id=()=>Number(el.dataset.id);
-  el.addEventListener("focus",()=>selectBlock(id()));
-  el.addEventListener("click",()=>{ selectBlock(id()); saveCaret(el); });
+  el.addEventListener("focus",()=>selectBlock(id(),{render:false}));
+  el.addEventListener("click",()=>{ selectBlock(id(),{render:false}); saveCaret(el); });
   el.addEventListener("keyup",()=>saveCaret(el));
   el.addEventListener("input",()=>{const b=block(id());if(b)b.text=el.innerText;saveCaret(el);commitHistory?.();});
 
@@ -344,16 +353,19 @@ function wireTextBlock(el){
   el.addEventListener("pointerdown",e=>{
     if(e.button!==0) return;
     const bid=id();
-    selectBlock(bid);
+    const active=document.activeElement;
+    if(active?.isContentEditable && active!==el)active.blur();
+    const wasSelected=selectedId===bid;
+    selectBlock(bid,{render:false});
     const b=block(bid); if(!b)return;
     const rect=el.getBoundingClientRect();
     const onResizeHandle=e.clientX>=rect.right-20 && e.clientY>=rect.bottom-20;
 
-    e.preventDefault();
     e.stopPropagation();
-    try{el.setPointerCapture(e.pointerId);}catch(_){}
 
     if(onResizeHandle){
+      e.preventDefault();
+      try{el.setPointerCapture(e.pointerId);}catch(_){}
       const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
       drag={
         type:"resize",id:bid,x:e.clientX,y:e.clientY,cx,cy,
@@ -364,9 +376,16 @@ function wireTextBlock(el){
       return;
     }
 
+    // In text-edit mode, pointer gestures stay native so dragging highlights
+    // characters and double-clicking selects words.
+    if(document.activeElement===el)return;
+
+    e.preventDefault();
+    try{el.setPointerCapture(e.pointerId);}catch(_){}
+
     drag={
       type:"text",id:bid,x:e.clientX,y:e.clientY,bx:b.x,by:b.y,
-      el,pointerId:e.pointerId,moved:false,downX:e.clientX,downY:e.clientY
+      el,pointerId:e.pointerId,moved:false,downX:e.clientX,downY:e.clientY,wasSelected
     };
   });
 
@@ -374,7 +393,7 @@ function wireTextBlock(el){
     if(!drag || drag.id!==id() || drag.pointerId!==e.pointerId)return;
     const wasClick=drag.type==="text" && !drag.moved;
     try{el.releasePointerCapture(e.pointerId);}catch(_){}
-    if(wasClick){
+    if(wasClick && drag.wasSelected){
       const x=e.clientX,y=e.clientY;
       setTimeout(()=>{
         el.focus();
@@ -443,7 +462,13 @@ $("stage").addEventListener("pointerdown",e=>{
   else { selectedTableId=null; selectBlock(null); }
 });
 
-function selectBlock(id){selectedId=id;if(id!=null)selectedTableId=null;renderBlocks();}
+function selectBlock(id,{render=true}={}){
+  selectedId=id;if(id!=null)selectedTableId=null;
+  if(render){renderBlocks();return;}
+  document.querySelectorAll(".textBlock").forEach(e=>e.classList.toggle("selected",Number(e.dataset.id)===id));
+  document.querySelectorAll(".tableBlock.selected").forEach(e=>e.classList.remove("selected"));
+  syncToolbar();
+}
 function addText(text="New text"){
   const b=makeBlock(text);
   if(blocks.length)b.y=Math.min(85,40+blocks.length*11);
@@ -451,7 +476,17 @@ function addText(text="New text"){
   setTimeout(()=>{const el=document.querySelector(`.textBlock[data-id="${b.id}"]`);if(el){el.focus();const r=document.createRange(),s=window.getSelection();r.selectNodeContents(el);s.removeAllRanges();s.addRange(r);}},0);
 }
 function duplicateSelected(){const b=selected();if(b){const n={...b,id:nextId++,x:Math.min(90,b.x+5),y:Math.min(90,b.y+5)};blocks.push(n);selectedId=n.id;renderBlocks();return;}if(selectedTableId){const t=tables.find(x=>x.id===selectedTableId);if(!t)return;const n=JSON.parse(JSON.stringify(t));n.id=nextTableId++;n.x=Math.min(90,n.x+4);n.y=Math.min(90,n.y+4);tables.push(n);selectedTableId=n.id;renderTables();}}
-function deleteSelected(){if(selectedId!=null){blocks=blocks.filter(b=>b.id!==selectedId);selectedId=blocks.at(-1)?.id??null;renderBlocks();return;}if(selectedTableId!=null){tables=tables.filter(t=>t.id!==selectedTableId);selectedTableId=null;renderTables();}}
+function deleteSelected(){
+  if(selectedId!=null){
+    const id=selectedId;blocks=blocks.filter(b=>b.id!==id);selectedId=null;lastCaretRange.delete(id);renderBlocks();
+    setStatus("Text deleted.");commitHistory();scheduleSave?.();return true;
+  }
+  if(selectedTableId!=null){
+    tables=tables.filter(t=>t.id!==selectedTableId);selectedTableId=null;renderTables();
+    setStatus("Table deleted.");commitHistory();scheduleSave?.();return true;
+  }
+  return false;
+}
 function changeSelected(fn){
   const b=selected();
   if(b){ fn(b); renderBlocks(); scheduleSave?.(); return; }
@@ -460,8 +495,11 @@ function changeSelected(fn){
 }
 
 document.addEventListener("keydown",e=>{
-  if((e.key==="Delete"||e.key==="Backspace") && (selectedId||selectedTableId) && document.activeElement?.contentEditable!=="true"){
+  if((e.key==="Delete"||e.key==="Backspace") && (selectedId||selectedTableId) && !isEditingField()){
     e.preventDefault();deleteSelected();
+  }
+  if(e.key==="Escape" && document.activeElement?.isContentEditable){
+    e.preventDefault();document.activeElement.blur();syncToolbar();
   }
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="d"){e.preventDefault();duplicateSelected();}
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="b"){e.preventDefault();changeSelected(b=>b.bold=!b.bold);}
@@ -470,8 +508,9 @@ document.addEventListener("keydown",e=>{
 
 function syncToolbar(){
   const b=selected(),t=selectedTable(),obj=b||t;
+  $("selectionActions")?.classList.toggle("hidden",!obj);
   $("tableInspector")?.classList.toggle("hidden",!t);
-  $("selectionStatus").textContent=b?`Text ${blocks.indexOf(b)+1} selected — click to edit • drag to move • drag blue corner to resize`:(t?"Table selected — edit cells directly • drag ✥ to move • drag blue corner to resize":"Click a text block or table to edit it");
+  $("selectionStatus").textContent=b?`Text ${blocks.indexOf(b)+1} selected — click again to edit • drag to move • Delete to remove`:(t?"Table selected — edit cells directly • drag ✥ to move • Delete to remove":"Click a text block or table to select it");
   const panelTitle=document.querySelector(".panelHeader strong");if(panelTitle)panelTitle.textContent=t?"Table":b?"Text":"Properties";
   $("sizeBtn").textContent=obj?`${obj.size||28}px ▾`:"Size ▾";
   $("boldBtn").classList.toggle("active",!!obj?.bold);$("italicBtn").classList.toggle("active",!!obj?.italic);
@@ -1008,6 +1047,50 @@ $("creditsDialog")?.addEventListener("click",e=>{ if(e.target===$("creditsDialog
 })();
 
 
+document.addEventListener("copy",e=>{
+  if(isEditingField())return;
+  const payload=clipboardPayload();if(!payload)return;
+  e.preventDefault();writeObjectClipboard(e,payload);
+  setStatus(`${payload.type==="text"?"Text":"Table"} copied.`);
+},true);
+
+document.addEventListener("cut",e=>{
+  if(isEditingField())return;
+  const payload=clipboardPayload();if(!payload)return;
+  e.preventDefault();writeObjectClipboard(e,payload);deleteSelected();
+  setStatus(`${payload.type==="text"?"Text":"Table"} cut.`);
+},true);
+
+document.addEventListener("paste",async e=>{
+  if(isEditingField())return;
+  const data=e.clipboardData;if(!data)return;
+
+  const encoded=data.getData("application/x-postcard-object");
+  if(encoded){
+    try{if(pasteSelectedObject(JSON.parse(encoded))){e.preventDefault();return;}}catch(_){}
+  }
+
+  const imageItem=[...data.items].find(item=>item.kind==="file"&&item.type.startsWith("image/"));
+  if(imageItem){
+    const file=imageItem.getAsFile();if(!file)return;
+    e.preventDefault();
+    const src=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);});
+    await useImage(src);commitHistory();scheduleSave?.();setStatus("Image pasted as the background.");
+    return;
+  }
+
+  const text=data.getData("text/plain");
+  if(text && objectClipboard && text===clipboardPlainText(objectClipboard)){
+    e.preventDefault();pasteSelectedObject(objectClipboard);return;
+  }
+  if(text){e.preventDefault();addText(text);commitHistory();scheduleSave?.();setStatus("Text pasted.");}
+},true);
+
+document.addEventListener("selectionchange",()=>{
+  const el=document.activeElement;
+  if(el?.classList?.contains("textBlock"))saveCaret(el);
+});
+
 document.addEventListener("keydown",async e=>{
   const mod=e.metaKey||e.ctrlKey;
   if(!mod) return;
@@ -1026,14 +1109,6 @@ document.addEventListener("keydown",async e=>{
   if(key==="s"){
     e.preventDefault();
     await $("downloadBtn")?.click();
-    return;
-  }
-  if(key==="c" && !isEditingField()){
-    if(copySelectedObject()) e.preventDefault();
-    return;
-  }
-  if(key==="v" && !isEditingField()){
-    if(pasteSelectedObject()) e.preventDefault();
     return;
   }
 },true);
