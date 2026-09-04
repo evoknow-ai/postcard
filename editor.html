@@ -15,6 +15,7 @@
     <div class="brand"><strong>PostCard</strong><span>MyPoint.Cards</span></div>
 <div class="topActions">
       <span id="siteBadge" hidden></span>
+      <button class="tool" id="backToSlidesBtn" hidden>← Back to Slides</button>
       <button class="tool settingsCog" id="settingsBtn" title="AI automation settings">⚙</button>
       <button class="tool" id="newSessionBtn">New</button>
       <button class="tool" id="downloadBtn">⇩</button>
@@ -159,7 +160,7 @@
     <div class="footerMeta">
       <span id="status"></span>
       <button class="footerLink" id="creditsBtn">Credits</button>
-      <span>v0.9.1</span>
+      <span>v0.9.2</span>
       <span>MIT License</span>
     </div>
   </footer>
@@ -237,7 +238,7 @@
       <a href="https://github.com/evoknow-ai/postcard" target="_blank">GitHub</a>
     </div>
 
-    <div class="creditVersion">Version 0.9.1 · MIT License</div>
+    <div class="creditVersion">Version 0.9.2 · MIT License</div>
   </div>
 </dialog>
 
@@ -314,7 +315,7 @@
 </dialog>
 
 <canvas id="exportCanvas" hidden></canvas>
-<script src="editor.js"></script>
+<script src="slide-editor-bridge.js"></script>
 <div hidden>
 <input id="slideDuration" type="range" min="1" max="10" value="3">
 <span id="slideDurationValue">3s</span>

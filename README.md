@@ -541,3 +541,9 @@ PostCard has been reimagined as a desktop rich-canvas editor.
 - Delete/Backspace removes a selected object when not editing its contents; Cmd/Ctrl+X cuts it.
 - Fixed mouse text selection by preserving native pointer behavior while a text block is being edited.
 - Added a publishable privacy policy for the Chrome Web Store listing.
+
+## v0.9.2
+
+- Restored the **Back to Slides** button while editing a slide.
+- Opening **Edit slide** now loads the selected slide instead of stale editor content.
+- Returning to Slides now saves the active slide immediately before navigation.
