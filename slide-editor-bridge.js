@@ -10,8 +10,10 @@ const SLIDE_RETURN_MARKER_KEY="postcardReturnToSlidesV1";
     const state=data?.[SLIDE_EDITOR_STATE_KEY];
     returningToSlides=!!data?.[SLIDE_RETURN_MARKER_KEY];
 
-    if(returningToSlides&&state&&Array.isArray(state.slides)&&state.slides.length){
-      const activeSlide=Math.max(0,Math.min(Number(state.activeSlide)||0,state.slides.length-1));
+    if((returningToSlides||state?.lastWriter==="slides")&&state&&Array.isArray(state.slides)&&state.slides.length){
+      const marker=data?.[SLIDE_RETURN_MARKER_KEY];
+      const found=marker?.slideId?state.slides.findIndex(sl=>sl.id===marker.slideId):-1;
+      const activeSlide=found>=0?found:Math.max(0,Math.min(Number(state.activeSlide)||0,state.slides.length-1));
       const slide=state.slides[activeSlide];
       slideDuration=Number(slide.duration)||3;
       await chrome.storage.local.set({

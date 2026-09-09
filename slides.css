@@ -25,3 +25,68 @@ button.primary{background:#1976d2;border-color:#1976d2}
 .panelButtons{display:flex;flex-direction:column;gap:8px}.panelButtons.two{display:grid;grid-template-columns:1fr 1fr}
 .hint,.status{font-size:11px;color:#8d929b}.status{margin-top:8px;min-height:16px}
 @media(max-width:1000px){.slidesGrid{grid-template-columns:170px 1fr}.slidePanel{grid-column:1/-1;border-left:0;border-top:1px solid #292b2f}.previewShell{height:60vh}}
+
+.audioGroup{margin:12px 0;padding:12px;border:1px solid #2d3036;border-radius:10px;background:#1b1d21}
+.audioTitleRow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;font-size:12px}
+.audioTitleRow span{color:#8d929b;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px}
+.fileButton{display:block;border:1px dashed #41444b;border-radius:8px;padding:9px 10px;text-align:center;cursor:pointer;color:#d8dbe1!important;margin:8px 0 10px}
+.fileButton input{display:none}
+.mixHint{font-size:10px;color:#8d929b;line-height:1.4;margin-top:8px}
+#recordVoiceBtn.recording{background:#9d2431;border-color:#d84b5b}
+
+.audioGroup{padding:10px!important;margin:9px 0!important}.audioGroup .panelButtons{flex-direction:row!important}.audioGroup .panelButtons.two{display:flex!important}.iconBtn{width:44px!important;height:40px!important;padding:0!important;font-size:18px}.fileButton{padding:7px 9px!important}.slidePanel input[type=range]{margin:6px 0 10px!important}.recordStrip,.previewStrip{margin-top:10px;display:flex;align-items:center;gap:9px;min-height:42px;padding:7px 10px;border:1px solid #3a3d44;border-radius:9px;background:#191b1f;flex-wrap:wrap}.recordStrip[hidden],.previewStrip[hidden]{display:none}.recordDot{width:10px;height:10px;border-radius:50%;background:#ff3b4f;animation:recpulse 1s infinite}.recordStrip strong{color:#ff6675;font-size:11px}.recordStrip button,.previewStrip button{background:#292b30;border:1px solid #41444b;color:#eee;border-radius:7px;padding:5px 9px}#voiceMeter{width:180px;height:28px;background:#101114;border-radius:4px}@keyframes recpulse{50%{opacity:.25}}
+
+/* v0.8.35 audio compact row */
+.audioGroup .panelButtons,
+.audioGroup .panelButtons.two{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  gap:8px!important;
+  flex-wrap:nowrap!important;
+}
+.audioGroup .iconBtn{
+  flex:0 0 44px!important;
+  width:44px!important;
+  min-width:44px!important;
+  height:40px!important;
+}
+
+/* v0.8.36 compact audio transport */
+.audioGroup .panelButtons,
+.audioGroup .panelButtons.two{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  gap:8px!important;
+}
+.audioGroup .iconBtn{
+  width:42px!important;
+  min-width:42px!important;
+  height:40px!important;
+  flex:0 0 42px!important;
+  padding:0!important;
+}
+.iconBtn.recording{background:#9d2431!important;border-color:#e25061!important}
+.iconBtn.paused{background:#6f531a!important;border-color:#c99b35!important}
+
+.audioTransport{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;flex-wrap:nowrap!important;margin:8px 0 6px!important}
+.audioTransport .iconBtn{width:42px!important;min-width:42px!important;height:40px!important;flex:0 0 42px!important;padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}
+
+.exportOverlay{position:fixed;inset:0;z-index:9999;background:rgba(4,5,7,.78);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.exportOverlay[hidden]{display:none}
+.exportProgressCard{width:min(420px,calc(100vw - 40px));background:#1b1d21;border:1px solid #3a3d44;border-radius:14px;padding:24px;text-align:center;box-shadow:0 22px 70px #000a}
+.exportProgressCard strong{display:block;font-size:20px;margin:10px 0 7px}
+#exportProgressText,#exportProgressPercent{font-size:12px;color:#aeb3bd;margin:6px 0}
+.exportProgressTrack{height:8px;border-radius:999px;background:#30333a;overflow:hidden;margin:14px 0 8px}
+#exportProgressBar{height:100%;width:0%;background:#4f9cff;transition:width .12s linear}
+.exportSpinner{width:34px;height:34px;border:3px solid #3b3f47;border-top-color:#62a6ff;border-radius:50%;margin:auto;animation:exportspin .8s linear infinite}
+@keyframes exportspin{to{transform:rotate(360deg)}}
+
+.durationSummary{display:flex;justify-content:space-between;align-items:center;margin:-4px 0 14px;font-size:11px;color:#9298a3}
+.durationSummary strong{color:#c9cdd5;font-weight:600}
+.durationSummary.over strong{color:#ff7b86}
+
+.slideActionRow{display:flex;flex-direction:row;align-items:center;gap:10px;margin:12px 0 22px}
+.slideActionIcon{width:52px!important;min-width:52px!important;height:46px!important;flex:0 0 52px!important;padding:0!important;display:inline-flex!important;align-items:center;justify-content:center;font-size:22px!important;border-radius:9px!important}

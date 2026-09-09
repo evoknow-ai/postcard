@@ -19,11 +19,11 @@ function reorderObject(scene,type,id,action){
   const [entry]=entries.splice(index,1);entries.splice(to,0,entry);
   entries.forEach((e,i)=>e.object.z=i);return true;
 }
-async function drawOrderedObjects(ctx,scene,w,h,drawText,drawTable){
+async function drawOrderedObjects(ctx,scene,w,h,drawText,drawTable,opts={}){
   for(const {type,object} of orderedObjects(scene)){
     ctx.save();
     try{
-      if(type==="image")await drawImageObjects(ctx,[object],w,h);
+      if(type==="image")await drawImageObjects(ctx,[object],w,h,opts);
       else if(type==="text")drawText(object);
       else drawTable(object);
     }finally{ctx.restore();}

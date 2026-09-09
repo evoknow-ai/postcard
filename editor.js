@@ -9,7 +9,7 @@ const gradients=[["to right","#f12711","#f5af19"],["to right","#8e2de2","#4a00e0
 const emojis="😀 😂 😍 🥰 😎 🤔 😅 😢 😡 🤯 🤩 😴 😇 😬 🤗 🥳 🤡 😄 🙂 😉 😆 🥺 😤 👍 🙏 💪 🙌 👀 🤷‍♂️ 🤦‍♀️ 🧠 👑 🫶 👎 ✌️ 🤝 👏 ❤️ 🎉 ✨ 🔥 💯 🚫 ❌ ⭐ 🌟 💙 💚 💜 🖤 🤍 💖 💡 💥 ☀️ 🌙 ✅ ⚡ 🚀 📈 📱 💻 ⚽ 🏀 🎮 🎵 🎬 📚 🎯 📝 📢 🎙️ 🇦🇺 🇧🇩 🇧🇷 🇨🇦 🇨🇳 🇩🇪 🇫🇷 🇮🇳 🇮🇹 🇯🇵 🇰🇷 🇬🇧 🇺🇸".split(" ");
 
 let defaultFont="Arial, sans-serif";
-let bg={type:"solid",color:"#ED213A",gradient:null,image:null,imageObj:null,scale:"contain",darkness:20,posX:50,posY:50};
+let bg={type:"solid",color:"#ED213A",gradient:null,image:null,imageObj:null,scale:"cover",darkness:20,posX:50,posY:50};
 let blocks=[],selectedId=null,nextId=1,drag=null,currentFormat="landscape";
 let tables=[],selectedTableId=null,nextTableId=1;
 
@@ -36,6 +36,7 @@ function applyTableTemplate(t,name){
 }
 
 let slides=[],activeSlide=0;
+let editorStateExtras={};
 let dragCandidate=null;
 const lastCaretRange=new Map();
 
@@ -86,8 +87,8 @@ async function restoreHistoryState(st){
     selectedImageId=st.selectedImageId??null;
     selectedId=st.selectedId??null;
     selectedTableId=st.selectedTableId??null;
-    nextId=st.nextId||1;
-    nextTableId=st.nextTableId||1;
+    nextId=Math.max(st.nextId||1,...blocks.map(b=>Number(b.id)+1));
+    nextTableId=Math.max(st.nextTableId||1,...tables.map(t=>Number(t.id)+1));
     currentFormat=st.currentFormat||"landscape";
     $("postText").value=st.postText||"";
     $("poweredByToggle").checked=!!st.poweredBy;
@@ -324,6 +325,7 @@ function renderBlocks(){
     Object.assign(el.style,{
       left:`${b.x}%`,top:`${b.y}%`,width:`${b.width}%`,fontFamily:b.font,fontSize:`${displaySize(b.size)}px`,
       color:b.color,textAlign:b.align,lineHeight:b.lineHeight,fontWeight:b.bold?"700":"400",
+      transform:`translate(-50%,-50%) rotate(${textAngle(b)}deg)`,
       fontStyle:b.italic?"italic":"normal",textShadow:b.shadow?"0 2px 4px rgba(0,0,0,.55)":"none"
     });
     el.classList.toggle("selected",b.id===selectedId);old.delete(b.id);
@@ -379,7 +381,8 @@ function wireTextBlock(el){
     selectBlock(bid,{render:false});
     const b=block(bid); if(!b)return;
     const rect=el.getBoundingClientRect();
-    const onResizeHandle=e.clientX>=rect.right-20 && e.clientY>=rect.bottom-20;
+    const local=pointInRotatedText(e.clientX,e.clientY,rect.left+rect.width/2,rect.top+rect.height/2,textAngle(b));
+    const onResizeHandle=local.x>=el.offsetWidth/2-20 && local.y>=el.offsetHeight/2-20;
 
     e.stopPropagation();
 
@@ -525,7 +528,7 @@ document.addEventListener("keydown",e=>{
 });
 
 function syncToolbar(){
-  applyObjectLayers();
+  applyObjectLayers();syncMotionControls();
   const b=selected(),t=selectedTable(),obj=b||t;
   const im=selectedImage();
   $("selectionActions")?.classList.toggle("hidden",!obj&&!im);
@@ -569,7 +572,7 @@ function applyBackground(){
   else if(bg.type==="image"&&bg.image){const size=bg.scale==="actual"?"auto":bg.scale;el.style.backgroundColor="#000";el.style.backgroundImage=`linear-gradient(rgba(0,0,0,${bg.darkness/100}),rgba(0,0,0,${bg.darkness/100})),url("${bg.image}")`;el.style.backgroundSize=`cover, ${size}`;el.style.backgroundRepeat="no-repeat,no-repeat";el.style.backgroundPosition=`center, ${bg.posX}% ${bg.posY}%`;}
 }
 async function loadImage(src){return new Promise((res,rej)=>{const i=new Image();i.crossOrigin="anonymous";i.onload=()=>res(i);i.onerror=rej;i.src=src;});}
-async function useImage(src){try{bg={...bg,type:"image",image:src,imageObj:await loadImage(src),posX:50,posY:50};applyBackground();closeMenus();}catch{setStatus("Could not load image.",false);}}
+async function useImage(src){try{bg={...bg,type:"image",image:src,imageObj:await loadImage(src),isGif:isGifSource(src),gifUrl:isGifSource(src)?src:null,posX:50,posY:50};applyBackground();closeMenus();}catch{setStatus("Could not load image.",false);}}
 
 function renderMenus(){
   const solidWrap=$("solidColors");
@@ -660,7 +663,8 @@ function insertEmoji(emoji){
 async function newSession(){
   if(!confirm("Start a new PostCard? Unsaved design changes will be cleared.")) return;
   await clearSavedState();
-  bg={type:"solid",color:"#ED213A",gradient:null,image:null,imageObj:null,scale:"contain",darkness:20,posX:50,posY:50};
+  bg={type:"solid",color:"#ED213A",gradient:null,image:null,imageObj:null,scale:"cover",darkness:20,posX:50,posY:50};
+  editorStateExtras={};
   images=[];selectedImageId=null;
   blocks=[];tables=[];slides=[];activeSlide=0;selectedId=null;selectedTableId=null;nextId=1;nextTableId=1;currentFormat="landscape";
   $("postText").value=""; $("poweredByToggle").checked=false; $("poweredBy").style.display="none";
@@ -724,42 +728,20 @@ async function searchGiphy(){
     $("giphyResults").innerHTML=(j.data||[]).map(g=>`<img class="imageChoice" loading="lazy" decoding="async" data-gif="${g.images.original.url}" src="${g.images.fixed_height_small.url}">`).join("")||"No results.";
   }catch{$("giphyResults").textContent="Giphy search failed.";}
 }
-function serializeSlide(){ return {images:cloneForHistory(images),bg:JSON.parse(JSON.stringify({...bg,imageObj:null,gifFrames:null})),blocks:JSON.parse(JSON.stringify(blocks)),tables:JSON.parse(JSON.stringify(tables)),format:currentFormat,duration:Number($("slideDuration")?.value||3)}; }
+function serializeSlide(){ return {...(slides[activeSlide]||{}),id:slides[activeSlide]?.id||crypto.randomUUID(),images:cloneForHistory(images),bg:JSON.parse(JSON.stringify({...bg,imageObj:null,gifFrames:null})),blocks:JSON.parse(JSON.stringify(blocks)),tables:JSON.parse(JSON.stringify(tables)),format:currentFormat,duration:Number($("slideDuration")?.value||3)}; }
 async function restoreSlide(sl){
-  if(!sl)return; images=cloneForHistory(sl.images||[]);selectedImageId=null; bg=JSON.parse(JSON.stringify(sl.bg)); blocks=JSON.parse(JSON.stringify(sl.blocks)); tables=JSON.parse(JSON.stringify(sl.tables||[])); currentFormat=sl.format||"landscape";
+  if(!sl)return; selectedId=null;selectedTableId=null;images=cloneForHistory(sl.images||[]);selectedImageId=null; bg=JSON.parse(JSON.stringify(sl.bg)); blocks=JSON.parse(JSON.stringify(sl.blocks)); tables=JSON.parse(JSON.stringify(sl.tables||[])); currentFormat=sl.format||"landscape";
   if(bg.image){try{bg.imageObj=await loadImage(bg.image);}catch{bg.imageObj=null;}}
   $("slideDuration").value=sl.duration||3;$("slideDurationValue").textContent=`${sl.duration||3}s`;setFormat(currentFormat);applyBackground();renderBlocks();renderTables();
 }
 function saveActiveSlide(){ if(slides[activeSlide]) slides[activeSlide]=serializeSlide(); }
 function renderSlideList(){ $("slideList").innerHTML=slides.map((_,i)=>`<button class="slideChip ${i===activeSlide?"active":""}" data-slide="${i}">${i+1}</button>`).join(""); }
 async function switchSlide(i){ saveActiveSlide(); activeSlide=i; await restoreSlide(slides[i]); renderSlideList(); }
-function addSlide(){ saveActiveSlide(); slides.push({bg:{type:"solid",color:"#ED213A",gradient:null,image:null,imageObj:null,scale:"contain",darkness:20,posX:50,posY:50},blocks:[],tables:[],format:currentFormat,duration:3}); activeSlide=slides.length-1; restoreSlide(slides[activeSlide]); renderSlideList(); }
-function duplicateSlide(){ saveActiveSlide(); slides.splice(activeSlide+1,0,JSON.parse(JSON.stringify(slides[activeSlide]))); activeSlide++; restoreSlide(slides[activeSlide]); renderSlideList(); }
+function addSlide(){ saveActiveSlide(); slides.push({bg:{type:"solid",color:"#ED213A",gradient:null,image:null,imageObj:null,scale:"cover",darkness:20,posX:50,posY:50},blocks:[],tables:[],format:currentFormat,duration:3}); activeSlide=slides.length-1; restoreSlide(slides[activeSlide]); renderSlideList(); }
+function duplicateSlide(){ saveActiveSlide(); const copy=cloneForHistory(slides[activeSlide]);copy.id=crypto.randomUUID();copy.audioId=crypto.randomUUID();slides.splice(activeSlide+1,0,copy);activeSlide++;restoreSlide(slides[activeSlide]);renderSlideList(); }
 function deleteSlide(){ if(slides.length<=1)return; slides.splice(activeSlide,1); activeSlide=Math.max(0,activeSlide-1); restoreSlide(slides[activeSlide]); renderSlideList(); }
 
-async function prepareGifFrames(url){
-  if(!url || !("ImageDecoder" in window)) return null;
-  try{
-    const res=await fetch(url);
-    const data=await res.arrayBuffer();
-    const decoder=new ImageDecoder({data,type:"image/gif"});
-    await decoder.tracks.ready;
-    const track=decoder.tracks.selectedTrack;
-    const count=Math.min(track.frameCount||1,240);
-    const frames=[],durations=[];
-    for(let i=0;i<count;i++){
-      const decoded=await decoder.decode({frameIndex:i});
-      const vf=decoded.image;
-      const bmp=await createImageBitmap(vf);
-      const dur=Math.max(20,Math.round((vf.duration||100000)/1000));
-      frames.push(bmp); durations.push(dur);
-      vf.close();
-    }
-    decoder.close();
-    const total=durations.reduce((a,b)=>a+b,0)||1000;
-    return {frames,durations,total};
-  }catch(err){ console.warn("GIF decode failed",err); return null; }
-}
+async function prepareGifFrames(url){return url?decodeGifAnimation(url):null;}
 function gifFrameAt(anim,elapsedMs){
   if(!anim||!anim.frames.length)return null;
   let t=((elapsedMs%anim.total)+anim.total)%anim.total;
@@ -768,43 +750,17 @@ function gifFrameAt(anim,elapsedMs){
 }
 function closeGifAnim(anim){ if(anim?.frames) anim.frames.forEach(f=>{try{f.close()}catch(_){}}); }
 
-async function exportVideo(){
-  saveActiveSlide(); if(!slides.length)return;
-  const originalIndex=activeSlide;
-  const c=$("exportCanvas"),stream=c.captureStream(30);
-  let mime="video/webm;codecs=vp9";
-  if(MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) mime="video/mp4;codecs=avc1";
-  const chunks=[],rec=new MediaRecorder(stream,{mimeType:mime});
-  rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
-  rec.onstop=()=>{const blob=new Blob(chunks,{type:mime}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=mime.startsWith("video/mp4")?"postcard-slides.mp4":"postcard-slides.webm";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);};
-  rec.start(); setStatus("Rendering video…");
+async function exportVideo(){ return exportCardMp4(); }
 
-  for(const sl of slides){
-    await restoreSlide(sl);
-    const gifUrl=sl.bg?.isGif ? (sl.bg.gifUrl||sl.bg.image) : null;
-    const anim=gifUrl ? await prepareGifFrames(gifUrl) : null;
-    const start=performance.now(), duration=(sl.duration||3)*1000;
-    while(performance.now()-start<duration){
-      const elapsed=performance.now()-start;
-      await exportCanvas({gifFrame:gifFrameAt(anim,elapsed)});
-      await new Promise(r=>setTimeout(r,33));
-    }
-    closeGifAnim(anim);
-  }
-  rec.stop();
-  setStatus(mime.startsWith("video/mp4")?"MP4 exported with GIF animation.":"Video exported with GIF animation.");
-  activeSlide=Math.min(originalIndex,slides.length-1);
-  await restoreSlide(slides[activeSlide]); renderSlideList();
-}
 function wrap(ctx,text,maxWidth){const lines=[];for(const para of text.split("\n")){if(!para){lines.push("");continue;}let line="";for(const word of para.split(/\s+/)){const test=line?`${line} ${word}`:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word;}else line=test;}lines.push(line);}return lines;}
 function makeGradient(ctx,w,h,g){const[d,...colors]=g;let gr;if(d==="to left")gr=ctx.createLinearGradient(w,0,0,0);else if(d==="to bottom")gr=ctx.createLinearGradient(0,0,0,h);else if(d==="to top")gr=ctx.createLinearGradient(0,h,0,0);else if(d==="45deg")gr=ctx.createLinearGradient(0,0,w,h);else if(d==="135deg")gr=ctx.createLinearGradient(0,h,w,0);else gr=ctx.createLinearGradient(0,0,w,0);colors.forEach((c,i)=>gr.addColorStop(colors.length===1?0:i/(colors.length-1),c));return gr;}
-function drawImageBg(ctx,img,w,h){ctx.fillStyle="#000";ctx.fillRect(0,0,w,h);const ir=img.naturalWidth/img.naturalHeight,cr=w/h;let dw,dh;if(bg.scale==="actual"){dw=img.naturalWidth;dh=img.naturalHeight;}else if((bg.scale==="cover"&&ir>cr)||(bg.scale==="contain"&&ir<cr)){dh=h;dw=h*ir;}else{dw=w;dh=w/ir;}const x=(w-dw)/2-((bg.posX-50)/50)*(Math.max(0,dw-w)/2),y=(h-dh)/2-((bg.posY-50)/50)*(Math.max(0,dh-h)/2);ctx.drawImage(img,x,y,dw,dh);if(bg.darkness){ctx.fillStyle=`rgba(0,0,0,${bg.darkness/100})`;ctx.fillRect(0,0,w,h);}}
+function drawImageBg(ctx,img,w,h,timeSec=0){ctx.fillStyle="#000";ctx.fillRect(0,0,w,h);const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height,ir=iw/ih,cr=w/h;let dw,dh;if(bg.scale==="actual"){dw=iw;dh=ih;}else if((bg.scale==="cover"&&ir>cr)||(bg.scale==="contain"&&ir<cr)){dh=h;dw=h*ir;}else{dw=w;dh=w/ir;}const bm=backgroundMotion(bg,timeSec,Number($("cardVideoDuration")?.value||3));dw*=bm.zoom;dh*=bm.zoom;const x=bm.px*w+(w-dw)/2-((bg.posX-50)/50)*(Math.max(0,dw-w)/2),y=bm.py*h+(h-dh)/2-((bg.posY-50)/50)*(Math.max(0,dh-h)/2);ctx.drawImage(img,x,y,dw,dh);if(bg.darkness){ctx.fillStyle=`rgba(0,0,0,${bg.darkness/100})`;ctx.fillRect(0,0,w,h);}}
 
 async function exportCanvas(opts={}){
-  const c=$("exportCanvas"),ctx=c.getContext("2d"),[w,h]=formats[currentFormat];c.width=w;c.height=h;
+  const c=$("exportCanvas"),ctx=c.getContext("2d"),[w,h]=formats[currentFormat];if(c.width!==w)c.width=w;if(c.height!==h)c.height=h;
   if(bg.type==="solid"){ctx.fillStyle=bg.color;ctx.fillRect(0,0,w,h);}
   else if(bg.type==="gradient"){ctx.fillStyle=makeGradient(ctx,w,h,bg.gradient);ctx.fillRect(0,0,w,h);}
-  else if(bg.type==="image"&&(opts.gifFrame||bg.imageObj))drawImageBg(ctx,opts.gifFrame||bg.imageObj,w,h);
+  else if(bg.type==="image"&&(opts.gifFrame||bg.imageObj))drawImageBg(ctx,opts.gifFrame||bg.imageObj,w,h,opts.timeSec||0);
 
   await drawOrderedObjects(ctx,{images,blocks,tables},w,h,b=>{
     if(!b.text || !b.text.trim()) return;
@@ -823,6 +779,9 @@ async function exportCanvas(opts={}){
     const x=b.align==="left"?centerX-maxWidth/2:b.align==="right"?centerX+maxWidth/2:centerX;
     const y0=h*(b.y/100)-((lines.length-1)*lineHeight)/2;
 
+    const cy=h*b.y/100,tm=opts.timeSec==null?{alpha:1,dx:0,dy:0,scale:1}:blockMotion(b,opts.timeSec);
+    ctx.globalAlpha=tm.alpha;ctx.translate(centerX+tm.dx,cy+tm.dy);ctx.scale(tm.scale,tm.scale);
+    ctx.rotate(textAngle(b)*Math.PI/180);ctx.translate(-centerX,-cy);
     lines.forEach((line,i)=>ctx.fillText(line,x,y0+i*lineHeight,maxWidth));
   },raw=>{
     const t=normalizeTable(raw);
@@ -838,7 +797,7 @@ async function exportCanvas(opts={}){
         ctx.fillText(t.cells[rr]?.[cc]||"",left+cw/2,top+ch/2,cw-12);
       }
     }
-  });
+  },opts);
   ctx.shadowColor="transparent";
   if($("poweredByToggle").checked){ctx.font="500 18px Arial";ctx.fillStyle="rgba(255,255,255,.72)";ctx.textAlign="right";ctx.fillText("Powered by MyPoint.Cards",w-20,h-20);}
   return c;
@@ -962,6 +921,7 @@ function serializableBg(){
 }
 function currentEditorState(){
   return {
+    ...editorStateExtras,
     version:1,
     bg:serializableBg(),
     blocks,
@@ -977,6 +937,7 @@ function currentEditorState(){
     currentFormat,
     postText:$("postText")?.value||"",
     poweredBy:$("poweredByToggle")?.checked||false,
+    lastWriter:"editor",
     savedAt:Date.now()
   };
 }
@@ -986,6 +947,7 @@ function scheduleSave(){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
     try{
+      saveActiveSlide();
       await chrome.storage.local.set({[STATE_KEY]:currentEditorState()});
     }catch(e){
       console.warn("State save failed",e);
@@ -997,6 +959,7 @@ async function restoreEditorState(){
     const data=await chrome.storage.local.get(STATE_KEY);
     const st=data?.[STATE_KEY];
     if(!st||st.version!==1)return false;
+    editorStateExtras={...st};
     bg={...bg,...(st.bg||{})};
     blocks=Array.isArray(st.blocks)?st.blocks:[];
     tables=Array.isArray(st.tables)?st.tables.map(t=>({font:"Arial, sans-serif",size:28,color:"#ffffff",align:"center",bold:false,italic:false,...t})):[];
@@ -1006,8 +969,8 @@ async function restoreEditorState(){
     selectedImageId=st.selectedImageId??null;
     selectedId=st.selectedId??null;
     selectedTableId=st.selectedTableId??null;
-    nextId=st.nextId||1;
-    nextTableId=st.nextTableId||1;
+    nextId=Math.max(st.nextId||1,...blocks.map(b=>Number(b.id)+1));
+    nextTableId=Math.max(st.nextTableId||1,...tables.map(t=>Number(t.id)+1));
     currentFormat=st.currentFormat||"landscape";
     $("postText").value=st.postText||"";
     $("poweredByToggle").checked=!!st.poweredBy;

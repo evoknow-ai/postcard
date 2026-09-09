@@ -17,7 +17,8 @@ function setup(){
   const c=vm.createContext({console,crypto:require('node:crypto').webcrypto,document:{getElementById:()=>null,addEventListener(){},activeElement:null},
     $:element,formats:{landscape:[1200,675]},setFormat(){},applyBackground(){},renderBlocks(){},renderTables(){},renderSlideList(){},syncToolbar(){},scheduleSave(){},commitHistory(){},setStatus(){},updateHistoryButtons(){},
     Image:class{set src(value){this.naturalWidth=200;this.naturalHeight=100;queueMicrotask(()=>this.onload())}},
-    bg:{type:'solid',color:'#ED213A'},blocks:[],tables:[],slides:[],activeSlide:0,selectedId:null,selectedTableId:null,nextId:1,nextTableId:1,currentFormat:'landscape',historySuspended:false});
+    editorStateExtras:{},bg:{type:'solid',color:'#ED213A'},blocks:[],tables:[],slides:[],activeSlide:0,selectedId:null,selectedTableId:null,nextId:1,nextTableId:1,currentFormat:'landscape',historySuspended:false});
+  vm.runInContext(fs.readFileSync(path.join(root,'motion-tools.js'),'utf8'),c);
   vm.runInContext(fs.readFileSync(path.join(root,'object-layers.js'),'utf8'),c);
   vm.runInContext(fs.readFileSync(path.join(root,'image-objects.js'),'utf8'),c);
   for(const name of ['cloneForHistory','serializableBg','currentEditorState','historyState','restoreHistoryState','serializeSlide','restoreSlide','clipboardPayload','clipboardPlainText','pasteSelectedObject','deleteSelected'])vm.runInContext(editorFunction(name),c);
@@ -72,7 +73,7 @@ test('layer changes cross object types and survive history and slide restore',as
 test('editor and slideshow exports follow object ordering in both directions',async()=>{
  for(const renderer of ['editor','slides']){
   const {c,run}=setup(),calls=[];
-  const ctx={save(){},restore(){},clearRect(){},fillRect(){},drawImage(){calls.push('image')},fillText(){calls.push('text')},measureText:s=>({width:s.length*10})};
+  const ctx={save(){},restore(){},translate(){},scale(){},rotate(){},clearRect(){},fillRect(){},drawImage(){calls.push('image')},fillText(){calls.push('text')},measureText:s=>({width:s.length*10})};
   const canvas={width:0,height:0,getContext:()=>ctx};c.canvas=canvas;
   const oldDollar=c.$;c.$=id=>id==='exportCanvas'?canvas:oldDollar(id);
   c.wrap=(ctx,text)=>[text];
@@ -96,6 +97,7 @@ test('text pointer drag works when selected or focused; double click alone enabl
   setPointerCapture(){},releasePointerCapture(){},focus(){c.document.activeElement=el},blur(){c.document.activeElement=null;events.blur()},
   set contentEditable(value){this.isContentEditable=value==='true'}};
  c.el=el;c.document.activeElement=el;
+ el.offsetWidth=200;el.offsetHeight=50;
  c.selectBlock=id=>{c.selectedId=id};c.saveCaret=()=>{};c.placeCaretFromPoint=()=>{};c.block=()=>c.blocks[0];
  c.window={addEventListener:(type,fn)=>windowEvents[type]=fn,getSelection:()=>({removeAllRanges(){}})};
  const dollar=c.$;c.$=id=>id==='stage'?{getBoundingClientRect:()=>({width:1000,height:500})}:dollar(id);
@@ -127,4 +129,59 @@ test('image body drags independently of text editing and commits on pointer rele
  const e={button:0,clientX:100,clientY:100,pointerId:1,target:{dataset:{}},preventDefault(){},stopPropagation(){}};
  events.pointerdown(e);events.pointermove({...e,clientX:200,clientY:150});events.pointerup(e);
  assert.equal(run('images[0].x'),60);assert.equal(run('images[0].y'),60);assert.equal(saved,1);
+});
+
+test('text orientation snapping and inverse pointer coordinates at common angles',()=>{
+ const {run}=setup();
+ for(const [input,output] of [[88,90],[181,180],[268,270],[359,0],[44,45],[27,27]])assert.equal(run(`snapTextAngle(${input})`),output);
+ assert.equal(run('snapTextAngle(88,false)'),88);
+ for(const angle of [0,45,90,135,180,225,270,315]){
+  const radians=angle*Math.PI/180,x=100*Math.cos(radians)-25*Math.sin(radians),y=100*Math.sin(radians)+25*Math.cos(radians);
+  const local=run(`pointInRotatedText(${400+x},${300+y},400,300,${angle})`);
+  assert(Math.abs(local.x-100)<1e-8);assert(Math.abs(local.y-25)<1e-8);
+ }
+});
+test('saving edited slides preserves narration, duration, and presentation music settings',()=>{
+ const {run}=setup();
+ run('slides=[{id:"stable-slide",audioId:"voice-1",voiceVolume:75,duration:120}];editorStateExtras={musicVolume:55,musicName:"Music.mp3",fitMusicDuration:true};$("slideDuration").value=120;blocks=[{id:1,rotation:135,animation:"fade"}]');
+ const saved=run('serializeSlide()');assert.equal(saved.audioId,'voice-1');assert.equal(saved.duration,120);assert.equal(saved.voiceVolume,75);assert.equal(saved.blocks[0].rotation,135);
+ const state=run('currentEditorState()');assert.equal(state.musicName,'Music.mp3');assert.equal(state.musicVolume,55);assert.equal(state.fitMusicDuration,true);
+});
+test('music length extends the last slide without truncating narration or exceeding the requested song',()=>{
+ const {run}=setup();run('timeline=[{duration:10},{duration:20}]');
+ assert.equal(run('extendTimelineForMusic(timeline,120)'),120);assert.equal(run('timeline[1].duration'),110);
+ assert.equal(run('extendTimelineForMusic(timeline,5)'),120);
+});
+test('both exporters apply text rotation and time-varying animation',async()=>{
+ for(const renderer of ['editor','slides']){
+  const {c,run}=setup(),rotations=[],alphas=[];
+  const ctx={save(){},restore(){},translate(){},scale(){},rotate:value=>rotations.push(value),clearRect(){},fillRect(){},measureText:s=>({width:s.length*10}),fillText(){alphas.push(this.globalAlpha)}};
+  const canvas={width:0,height:0,getContext:()=>ctx};c.canvas=canvas;
+  const dollar=c.$;c.$=id=>id==='exportCanvas'?canvas:dollar(id);c.wrap=(ctx,text)=>[text];
+  run('blocks=[{id:1,text:"Animated",rotation:90,animation:"fade",animDuration:1,x:50,y:50,width:70,size:56,lineHeight:1.2}];scene={images,blocks,tables,bg:{type:"solid"},format:"landscape"}');
+  if(renderer==='editor')vm.runInContext(editorFunction('exportCanvas'),c);
+  else{c.fmt=()=>[1200,675];const source=fs.readFileSync(path.join(root,'slides.js'),'utf8');vm.runInContext(source.slice(source.indexOf('async function drawSlide('),source.indexOf('async function renderMain(')),c);}
+  await run(renderer==='editor'?'exportCanvas({timeSec:0})':'drawSlide(canvas,scene,{timeSec:0})');
+  await run(renderer==='editor'?'exportCanvas({timeSec:1})':'drawSlide(canvas,scene,{timeSec:1})');
+  assert.deepEqual(rotations,[Math.PI/2,Math.PI/2]);assert.deepEqual(alphas,[0,1]);
+ }
+});
+test('GIF export decodes every frame, loops by frame duration, and closes resources',async()=>{
+ const {c,run}=setup();let closed=0;
+ c.window={ImageDecoder:true};c.fetch=async()=>({ok:true,arrayBuffer:async()=>new ArrayBuffer(1)});
+ c.ImageDecoder=class{constructor(){this.tracks={ready:Promise.resolve(),selectedTrack:{frameCount:301}}}async decode({frameIndex}){return {image:{index:frameIndex,duration:100000,close(){}}}}close(){closed++}};
+ c.createImageBitmap=async image=>({index:image.index,close(){closed++}});
+ vm.runInContext(editorFunction('gifFrameAt'),c);vm.runInContext(editorFunction('closeGifAnim'),c);
+ await run('decodeGifAnimation("fixture.gif").then(value=>animation=value)');
+ assert.equal(run('animation.frames.length'),301);assert.equal(run('gifFrameAt(animation,150).index'),1);assert.equal(run('gifFrameAt(animation,30100).index'),0);
+ run('closeGifAnim(animation)');assert.equal(closed,302);
+});
+test('required editor and slideshow controls are unique and local scripts exist',()=>{
+ const required={ 'editor.html':['rotationDial','textRotation','exportCardVideoBtn','startCardExportBtn','textAnimation','objectLayers','objectImageUpload','backToSlidesBtn'], 'slides.html':['recordVoiceBtn','musicFile','fitMusicDuration','exportBtn','exportOverlay','exportProgressPercent','editBtn','duration'] };
+ for(const [file,controls] of Object.entries(required)){
+  const html=fs.readFileSync(path.join(root,file),'utf8'),ids=[...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
+  assert.equal(ids.length,new Set(ids).size,`${file}: duplicate IDs`);
+  for(const id of controls)assert(ids.includes(id),`${file}: missing ${id}`);
+  for(const match of html.matchAll(/<script src="([^"]+)"/g))assert(fs.existsSync(path.join(root,match[1])),match[1]);
+ }
 });

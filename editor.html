@@ -18,7 +18,8 @@
       <button class="tool" id="backToSlidesBtn" hidden>← Back to Slides</button>
       <button class="tool settingsCog" id="settingsBtn" title="AI automation settings">⚙</button>
       <button class="tool" id="newSessionBtn">New</button>
-      <button class="tool" id="downloadBtn">⇩</button>
+      <button class="tool" id="downloadBtn" title="Download PNG">⇩ PNG</button>
+      <button class="tool" id="exportCardVideoBtn">Export MP4</button>
       <button class="tool success" id="insertBtn">Insert into post</button>
     </div>
   </header>
@@ -86,6 +87,12 @@
         <p>Drag any corner to resize. Proportions stay locked.</p>
       </div>
       <div id="textInspector">
+      <label for="textRotation">Text orientation</label>
+      <div class="rotationControls">
+        <div id="rotationDial" role="slider" tabindex="0" aria-label="Text rotation" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0"><span></span></div>
+        <input id="textRotation" type="number" min="0" max="359" step="1" value="0" aria-label="Rotation in degrees"> <span>°</span>
+      </div>
+      <div class="anglePresets"><button data-angle="0">0°</button><button data-angle="45">45°</button><button data-angle="90">90°</button><button data-angle="180">180°</button><button data-angle="270">270°</button></div>
       <label>Font</label>
       <select id="fontFamily" class="fieldSelect fontDirectSelect">
 
@@ -190,18 +197,6 @@
 </div>
 
 <!-- popovers -->
-  <select id="fontFamily">
-    <optgroup label="Latin">
-      <option value="Arial, sans-serif">Arial</option><option value="Roboto, sans-serif">Roboto</option><option value="'Roboto Condensed', sans-serif">Roboto Condensed</option><option value="'Bebas Neue', sans-serif">Bebas Neue</option><option value="Anton, sans-serif">Anton</option><option value="Oswald, sans-serif">Oswald</option><option value="Pacifico, cursive">Pacifico</option><option value="'Open Sans', sans-serif">Open Sans</option><option value="Lato, sans-serif">Lato</option><option value="Montserrat, sans-serif">Montserrat</option><option value="Poppins, sans-serif">Poppins</option><option value="Nunito, sans-serif">Nunito</option>
-    </optgroup>
-    <optgroup label="Bangla / বাংলা"><option value="'Noto Sans Bengali', sans-serif">Noto Sans Bengali</option><option value="'Hind Siliguri', sans-serif">Hind Siliguri</option><option value="'Tiro Bangla', serif">Tiro Bangla</option></optgroup>
-    <optgroup label="Chinese / 中文"><option value="'Noto Sans SC', sans-serif">Noto Sans SC</option><option value="'Noto Serif SC', serif">Noto Serif SC</option></optgroup>
-    <optgroup label="Japanese / 日本語"><option value="'Noto Sans JP', sans-serif">Noto Sans JP</option><option value="'Noto Serif JP', serif">Noto Serif JP</option></optgroup>
-    <optgroup label="Korean / 한국어"><option value="'Noto Sans KR', sans-serif">Noto Sans KR</option></optgroup>
-    <optgroup label="Arabic / العربية"><option value="'Noto Sans Arabic', sans-serif">Noto Sans Arabic</option><option value="'Noto Kufi Arabic', sans-serif">Noto Kufi Arabic</option><option value="Cairo, sans-serif">Cairo</option></optgroup>
-  </select>
-</div>
-
 <div class="popover" id="sizeMenu"><div class="menuTitle">Font size</div><input id="fontSize" type="range" min="16" max="140" value="54"><div class="rowBetween"><span>16</span><strong id="fontSizeValue">54px</strong><span>140</span></div></div>
 <div class="popover" id="textColorMenu"><div class="menuTitle">Text color</div><input id="textColor" type="color" value="#ffffff"></div>
 
@@ -215,6 +210,8 @@
   <div class="menuTitle">Add image to card</div>
   <input id="objectImageUpload" type="file" accept="image/*" multiple>
   <p>Or copy an image and press ⌘V / Ctrl+V on the card.</p>
+  <label>Background motion</label><select id="bgMotion"><option value="none">None</option><option value="zoom-in">Zoom in</option><option value="zoom-out">Zoom out</option><option value="pan-left">Pan left</option><option value="pan-right">Pan right</option><option value="pan-up">Pan up</option><option value="pan-down">Pan down</option></select>
+  <label>Motion strength <span id="bgMotionStrengthValue">8%</span></label><input id="bgMotionStrength" type="range" min="1" max="25" value="8">
   <div class="menuTitle">Image background</div><input id="imageUpload" type="file" accept="image/*">
   <div class="spaceTop"><label>Scale</label><div class="buttonRow"><button data-scale="contain" class="active">Contain</button><button data-scale="cover">Cover</button><button data-scale="actual">Actual</button></div></div>
   <div class="spaceTop"><label>Darkness <span id="darknessValue">20%</span></label><input id="darkness" type="range" min="0" max="80" step="5" value="20"></div>
@@ -228,8 +225,9 @@
 
 <div class="popover" id="tableMenu"><div class="menuTitle">Insert table</div><div class="tablePresets"><button data-table="2x2">2×2</button><button data-table="3x3">3×3</button><button data-table="4x4">4×4</button></div><div class="spaceTop smallNote">Double-click cells to edit. Drag the table to move it.</div></div>
 
+<div hidden>
   <div class="buttonRow spaceTop"><button id="addSlideBtn">+ Slide</button><button id="dupSlideBtn">Duplicate</button><button id="delSlideBtn">Delete</button></div>
-  <label class="spaceTop">Slide duration <span id="slideDurationValue">3s</span></label><input id="slideDuration" type="range" min="1" max="10" value="3">
+  <label class="spaceTop">Slide duration <span id="slideDurationValue">3s</span></label><input id="slideDuration" type="range" min="1" max="600" value="3">
 </div>
 
 <div class="popover wide" id="emojiMenu"><div class="menuTitle">Emoji</div><div id="emojiGrid" class="emojiGrid"></div></div>
@@ -239,6 +237,21 @@
   <label>Text width <span id="widthValue">70%</span></label><input id="textWidth" type="range" min="20" max="95" value="70">
   <label class="spaceTop">Line height <span id="lineHeightValue">1.2</span></label><input id="lineHeight" type="range" min="0.8" max="2.2" step="0.1" value="1.2">
   <label class="check spaceTop"><input id="shadowToggle" type="checkbox" checked> Text shadow</label>
+  <label class="spaceTop">Text animation</label>
+  <select id="textAnimation" class="fieldSelect">
+    <option value="none">None</option>
+    <option value="fade">Fade in</option>
+    <option value="slide-up">Slide up</option>
+    <option value="slide-left">Slide from left</option>
+    <option value="slide-right">Slide from right</option>
+    <option value="zoom">Zoom in</option>
+    <option value="pop">Pop</option>
+  </select>
+  <label class="spaceTop">Duration <span id="textAnimDurationValue">0.7s</span></label>
+  <input id="textAnimDuration" type="range" min="0.2" max="3" step="0.1" value="0.7">
+  <label class="spaceTop">Delay <span id="textAnimDelayValue">0.0s</span></label>
+  <input id="textAnimDelay" type="range" min="0" max="5" step="0.1" value="0">
+
   <label class="check"><input id="poweredByToggle" type="checkbox"> Powered by MyPoint.Cards</label>
 </div>
 
@@ -341,13 +354,27 @@
 </dialog>
 
 <canvas id="exportCanvas" hidden></canvas>
-<script src="object-layers.js"></script>
-<script src="image-objects.js"></script>
-<script src="slide-editor-bridge.js"></script>
+
+
+
+
 <div hidden>
-<input id="slideDuration" type="range" min="1" max="10" value="3">
-<span id="slideDurationValue">3s</span>
 <div id="slideList"></div>
 </div>
+<dialog id="cardExportDialog">
+  <h2>Export animated MP4</h2>
+  <label for="cardVideoDuration">Video duration (seconds)</label>
+  <input id="cardVideoDuration" type="number" min="1" max="600" value="3">
+  <p>GIFs and motion effects play throughout the video. Recording takes the selected duration.</p>
+  <progress id="cardExportProgress" max="100" value="0"></progress>
+  <p id="cardExportStatus">Ready</p>
+  <button id="startCardExportBtn">Export MP4</button><button id="closeCardExportBtn">Close</button>
+</dialog>
+
+<script src="motion-tools.js"></script>
+<script src="object-layers.js"></script>
+<script src="image-objects.js"></script>
+<script src="editor-motion.js"></script>
+<script src="slide-editor-bridge.js"></script>
 </body>
 </html>

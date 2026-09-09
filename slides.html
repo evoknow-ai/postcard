@@ -12,6 +12,7 @@
     <div class="brand"><strong>PostCard Slides</strong><span>Create, arrange and export your slide video.</span></div>
     <div class="topActions">
       <button id="backBtn">← Back to editor</button>
+      <button id="previewBtn" title="Preview presentation">▶ Preview</button>
       <button id="exportBtn" class="primary">Export video</button>
     </div>
   </header>
@@ -29,18 +30,75 @@
         <button id="nextBtn">→</button>
       </div>
       <div class="previewShell"><canvas id="previewCanvas" width="1280" height="720"></canvas></div>
-      <div id="exportStatus" class="status"></div>
+      <div id="recordStrip" class="recordStrip" hidden>
+  <span class="recordDot"></span><strong>REC</strong>
+  <span id="recordTimer">00:00</span>
+  <canvas id="voiceMeter" width="180" height="28"></canvas>
+  <button id="recordPrevBtn" title="Previous slide">←</button>
+  <span id="recordSlideLabel">Slide 1</span>
+  <button id="recordNextBtn" title="Next slide">→</button>
+  <button id="recordStopBtn" title="Stop recording">■</button>
+</div>
+<div id="previewStrip" class="previewStrip" hidden>
+  <button id="previewPrevBtn" title="Previous slide">←</button>
+  <button id="previewPlayPauseBtn" title="Pause">Ⅱ</button>
+  <button id="previewNextBtn" title="Next slide">→</button>
+  <span id="previewTime">00:00 / 00:00</span>
+  <button id="previewStopBtn" title="Stop preview">■</button>
+</div>
+<div id="exportStatus" class="status"></div>
     </section>
 
     <aside class="slidePanel">
       <h2>Slide</h2>
       <label>Duration <span id="durationValue">3s</span></label>
-      <input id="duration" type="range" min="1" max="10" value="3">
-      <div class="panelButtons">
-        <button id="editBtn" class="primary">Edit slide</button>
-        <button id="duplicateBtn">Duplicate</button>
-        <button id="deleteBtn">Delete</button>
+      <input id="duration" type="range" min="1" max="600" value="3">
+      <div class="durationSummary">
+        <span>Total</span>
+        <strong id="totalDuration">0:03 / 10:00 max</strong>
       </div>
+      <div class="slideActionRow">
+        <button id="editBtn" class="slideActionIcon primary" title="Edit slide" aria-label="Edit slide">✎</button>
+        <button id="duplicateBtn" class="slideActionIcon" title="Duplicate slide" aria-label="Duplicate slide">⧉</button>
+        <button id="deleteBtn" class="slideActionIcon" title="Delete slide" aria-label="Delete slide">⌫</button>
+      </div>
+
+      <h3>Audio</h3>
+
+      <div class="audioGroup">
+        <div class="audioTitleRow">
+          <strong>Voice for this slide</strong>
+          <span id="voiceState">None</span>
+        </div>
+        <div class="audioTransport">
+          <button id="recordVoiceBtn" class="iconBtn" title="Record voice" aria-label="Record voice">●</button>
+          <button id="playVoiceBtn" class="iconBtn" title="Play / pause voice" aria-label="Play / pause voice" disabled>▶</button>
+          <button id="deleteVoiceBtn" class="iconBtn" title="Remove voice" aria-label="Remove voice" disabled>⌫</button>
+        </div>
+        <label>Voice level <span id="voiceVolumeValue">100%</span></label>
+        <input id="voiceVolume" type="range" min="0" max="150" step="5" value="100">
+      </div>
+
+      <div class="audioGroup">
+        <div class="audioTitleRow">
+          <strong>Music / MP3</strong>
+          <span id="musicName">None</span>
+        </div>
+        <label class="fileButton">Choose MP3
+          <input id="musicFile" type="file" accept="audio/mpeg,audio/mp3,audio/*">
+        </label>
+        <div class="audioTransport">
+          <button id="playMusicBtn" class="iconBtn" title="Play / pause music" aria-label="Play / pause music" disabled>▶</button>
+          <button id="stopMusicBtn" class="iconBtn" title="Stop music" aria-label="Stop music" disabled>■</button>
+          <button id="removeMusicBtn" class="iconBtn" title="Remove music" aria-label="Remove music" disabled>⌫</button>
+        </div>
+        <label>Music level <span id="musicVolumeValue">40%</span></label>
+        <input id="musicVolume" type="range" min="0" max="100" step="5" value="40">
+      </div>
+
+      <label class="audioFit"><input id="fitMusicDuration" type="checkbox"> Extend video to the full music length</label>
+      <div class="mixHint">Export mixes slide voice and MP3. Use either one or both.</div>
+
       <h3>Order</h3>
       <div class="panelButtons two">
         <button id="moveUpBtn">↑ Earlier</button>
@@ -51,6 +109,17 @@
   </main>
 </div>
 <canvas id="exportCanvas" hidden></canvas>
+
+<div id="exportOverlay" class="exportOverlay" hidden>
+  <div class="exportProgressCard">
+    <div class="exportSpinner"></div>
+    <strong>Generating video…</strong>
+    <div id="exportProgressText">Preparing slides and audio</div>
+    <div class="exportProgressTrack"><div id="exportProgressBar"></div></div>
+    <div id="exportProgressPercent">0%</div>
+  </div>
+</div>
+<script src="motion-tools.js"></script>
 <script src="object-layers.js"></script>
 <script src="image-objects.js"></script>
 <script src="slides.js"></script>

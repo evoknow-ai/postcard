@@ -568,3 +568,14 @@ Validation: `node --test tests/image-objects.test.cjs`. Full Chrome interaction 
 - Layer order persists with saved cards, undo/redo, slide editing, PNG export and slideshow/video rendering.
 
 Validation: regression tests cover text/image pointer handlers, all resize corners, old and new object ordering, history/slide round trips and both export renderers. Live browser interaction testing could not run because the cloud browser blocked the local preview URL.
+
+## v0.9.5 — feature recovery
+
+- Restored text orientation: dial, exact degrees, common-angle snapping, and resize detection for rotated text.
+- Added a direct Export MP4 action for GIF-based cards, with duration, progress, animated image objects and text/background motion effects.
+- Recovered slideshow narration, music, volume controls, preview and export progress. Added the full-music-length option and preserved audio metadata during slide editing.
+- Retained image paste, independent object movement/resizing, layers and front/back controls.
+- Preserved stable slide IDs and long durations; removed duplicate editor control IDs.
+- Added feature preservation checks and recovery provenance in `docs/FEATURE-PRESERVATION.md`.
+
+Actual Chrome interaction, microphone capture and MP4 playback testing were blocked by the browser's URL security policy; local regression tests are not a substitute for those checks.

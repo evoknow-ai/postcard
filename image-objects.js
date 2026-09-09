@@ -16,9 +16,9 @@ async function getImageObject(src){
   }
   return imageObjectCache.get(src);
 }
-async function drawImageObjects(ctx,objects,w,h){
+async function drawImageObjects(ctx,objects,w,h,opts={}){
   for(const im of objects){
-    const img=await getImageObject(im.src);
+    const img=opts.imageFrames?.get(im.src)||await getImageObject(im.src);
     const width=w*im.width/100,height=width/im.ratio;
     ctx.drawImage(img,w*im.x/100-width/2,h*im.y/100-height/2,width,height);
   }
