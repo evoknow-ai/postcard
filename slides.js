@@ -55,6 +55,8 @@ async function drawSlide(canvas,sl){
     }catch{ctx.fillStyle="#222";ctx.fillRect(0,0,w,h)}
   }else{ctx.fillStyle=bg.color||"#ED213A";ctx.fillRect(0,0,w,h)}
 
+  await drawImageObjects(ctx,sl.images||[],w,h);
+
   for(const b of sl.blocks||[]){
     if(!b.text?.trim())continue;
     ctx.font=`${b.italic?"italic ":""}${b.bold?"700":"400"} ${b.size||56}px ${b.font||"Arial"}`;

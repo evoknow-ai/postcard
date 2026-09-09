@@ -46,6 +46,7 @@
         <div id="stageShell">
           <div id="stage">
             <div id="backgroundLayer"></div>
+            <div id="imageLayer"></div>
             <div id="textLayer"></div>
             <div id="poweredBy">Powered by MyPoint.Cards</div>
           </div>
@@ -64,6 +65,12 @@
         </div>
       </div>
 
+      <div id="imageInspector" class="hidden">
+        <label for="imageWidth">Image size <span id="imageWidthValue"></span></label>
+        <input id="imageWidth" type="range" min="2" max="150" step="1">
+        <p>Drag any corner to resize. Proportions stay locked.</p>
+      </div>
+      <div id="textInspector">
       <label>Font</label>
       <select id="fontFamily" class="fieldSelect fontDirectSelect">
 
@@ -107,6 +114,7 @@
         <button data-menu="moreMenu">More</button>
       </div>
 
+      </div>
       <div id="tableInspector" class="tableInspector hidden">
         <div class="inspectorDivider"></div>
         <div class="panelHeader tablePanelHeader">
@@ -189,6 +197,9 @@
 </div>
 
 <div class="popover wide" id="imageMenu">
+  <div class="menuTitle">Add image to card</div>
+  <input id="objectImageUpload" type="file" accept="image/*" multiple>
+  <p>Or copy an image and press ⌘V / Ctrl+V on the card.</p>
   <div class="menuTitle">Image background</div><input id="imageUpload" type="file" accept="image/*">
   <div class="spaceTop"><label>Scale</label><div class="buttonRow"><button data-scale="contain" class="active">Contain</button><button data-scale="cover">Cover</button><button data-scale="actual">Actual</button></div></div>
   <div class="spaceTop"><label>Darkness <span id="darknessValue">20%</span></label><input id="darkness" type="range" min="0" max="80" step="5" value="20"></div>
@@ -315,6 +326,7 @@
 </dialog>
 
 <canvas id="exportCanvas" hidden></canvas>
+<script src="image-objects.js"></script>
 <script src="slide-editor-bridge.js"></script>
 <div hidden>
 <input id="slideDuration" type="range" min="1" max="10" value="3">

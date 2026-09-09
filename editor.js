@@ -62,6 +62,8 @@ function historyState(){
     activeSlide,
     selectedId,
     selectedTableId,
+    images:cloneForHistory(images),
+    selectedImageId,
     nextId,
     nextTableId,
     currentFormat,
@@ -80,6 +82,8 @@ async function restoreHistoryState(st){
     tables=cloneForHistory(st.tables);
     slides=cloneForHistory(st.slides);
     activeSlide=st.activeSlide||0;
+    images=cloneForHistory(st.images||[]);
+    selectedImageId=st.selectedImageId??null;
     selectedId=st.selectedId??null;
     selectedTableId=st.selectedTableId??null;
     nextId=st.nextId||1;
@@ -144,6 +148,8 @@ function isEditingField(){
   return !!a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
 }
 function clipboardPayload(){
+  const im=selectedImage();
+  if(im)return {type:"image",data:cloneForHistory(im)};
   const b=selected();
   const t=selectedTable();
   if(b) return {type:"text",data:cloneForHistory(b)};
@@ -151,6 +157,7 @@ function clipboardPayload(){
   return null;
 }
 function clipboardPlainText(payload){
+  if(payload?.type==="image")return payload.data.src;
   if(payload?.type==="text") return payload.data.text||"";
   if(payload?.type==="table") return payload.data.cells.map(row=>row.join("\t")).join("\n");
   return "";
@@ -164,16 +171,18 @@ function copySelectedObject(){
   const payload=clipboardPayload();
   if(!payload)return false;
   objectClipboard=payload;
-  setStatus(`${payload.type==="text"?"Text":"Table"} copied.`);
+  setStatus(`${payload.type==="text"?"Text":payload.type==="image"?"Image":"Table"} copied.`);
   return true;
 }
 function pasteSelectedObject(payload=objectClipboard){
   if(!payload) return false;
+  if(payload.type==="image"){return pasteImageObject(payload.data);}
   if(payload.type==="text"){
     const src=cloneForHistory(payload.data);
     src.id=nextId++;
     src.x=Math.min(92,(src.x||50)+4);
     src.y=Math.min(92,(src.y||50)+4);
+    selectedImageId=null;
     blocks.push(src);
     selectedId=src.id; selectedTableId=null;
     renderBlocks(); renderTables(); commitHistory(); scheduleSave?.();
@@ -185,6 +194,7 @@ function pasteSelectedObject(payload=objectClipboard){
     src.id=nextTableId++;
     src.x=Math.min(92,(src.x||50)+4);
     src.y=Math.min(92,(src.y||50)+4);
+    selectedImageId=null;
     tables.push(src);
     selectedTableId=src.id; selectedId=null;
     renderTables(); renderBlocks(); commitHistory(); scheduleSave?.();
@@ -249,6 +259,7 @@ function escapeHtml(value){
   return String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"','&quot;');
 }
 function selectTable(id,{render=true}={}){
+  selectedImageId=null;renderImages();
   selectedTableId=id;
   selectedId=null;
   if(render){ renderBlocks(); renderTables(); }
@@ -293,10 +304,12 @@ function addTable(rows,cols){
     cells:Array.from({length:rows},()=>Array.from({length:cols},()=>""))
   });
   applyTableTemplate(t,"midnight");
+  selectedImageId=null;renderImages();
   tables.push(t);selectedTableId=t.id;selectedId=null;renderTables();closeMenus();scheduleSave?.();
   setTimeout(()=>document.querySelector(`.tableBlock[data-id="${t.id}"] td`)?.focus(),0);
 }
 function renderBlocks(){
+  renderImages();
   const layer=$("textLayer");
   const old=new Map([...layer.querySelectorAll(".textBlock")].map(e=>[Number(e.dataset.id),e]));
   for(const b of blocks){
@@ -457,12 +470,15 @@ window.addEventListener("pointerup",e=>{
 });
 
 $("stage").addEventListener("pointerdown",e=>{
-  if(e.target.closest(".textBlock"))return;
+  if(e.target.closest(".textBlock,.tableBlock,.imageBlock"))return;
+  document.activeElement?.blur?.();
+  selectedTableId=null;selectBlock(null);
   if(bg.type==="image")drag={type:"bg",x:e.clientX,y:e.clientY,bx:bg.posX,by:bg.posY};
   else { selectedTableId=null; selectBlock(null); }
 });
 
 function selectBlock(id,{render=true}={}){
+  selectedImageId=null;renderImages();
   selectedId=id;if(id!=null)selectedTableId=null;
   if(render){renderBlocks();return;}
   document.querySelectorAll(".textBlock").forEach(e=>e.classList.toggle("selected",Number(e.dataset.id)===id));
@@ -470,13 +486,15 @@ function selectBlock(id,{render=true}={}){
   syncToolbar();
 }
 function addText(text="New text"){
+  selectedImageId=null;
   const b=makeBlock(text);
   if(blocks.length)b.y=Math.min(85,40+blocks.length*11);
   blocks.push(b);selectedId=b.id;renderBlocks();
   setTimeout(()=>{const el=document.querySelector(`.textBlock[data-id="${b.id}"]`);if(el){el.focus();const r=document.createRange(),s=window.getSelection();r.selectNodeContents(el);s.removeAllRanges();s.addRange(r);}},0);
 }
-function duplicateSelected(){const b=selected();if(b){const n={...b,id:nextId++,x:Math.min(90,b.x+5),y:Math.min(90,b.y+5)};blocks.push(n);selectedId=n.id;renderBlocks();return;}if(selectedTableId){const t=tables.find(x=>x.id===selectedTableId);if(!t)return;const n=JSON.parse(JSON.stringify(t));n.id=nextTableId++;n.x=Math.min(90,n.x+4);n.y=Math.min(90,n.y+4);tables.push(n);selectedTableId=n.id;renderTables();}}
+function duplicateSelected(){if(selectedImage())return pasteImageObject(selectedImage());const b=selected();if(b){const n={...b,id:nextId++,x:Math.min(90,b.x+5),y:Math.min(90,b.y+5)};blocks.push(n);selectedId=n.id;renderBlocks();return;}if(selectedTableId){const t=tables.find(x=>x.id===selectedTableId);if(!t)return;const n=JSON.parse(JSON.stringify(t));n.id=nextTableId++;n.x=Math.min(90,n.x+4);n.y=Math.min(90,n.y+4);tables.push(n);selectedTableId=n.id;renderTables();}}
 function deleteSelected(){
+  if(selectedImage()){images=images.filter(im=>im.id!==selectedImageId);selectedImageId=null;renderBlocks();commitHistory();scheduleSave();setStatus("Image deleted.");return true;}
   if(selectedId!=null){
     const id=selectedId;blocks=blocks.filter(b=>b.id!==id);selectedId=null;lastCaretRange.delete(id);renderBlocks();
     setStatus("Text deleted.");commitHistory();scheduleSave?.();return true;
@@ -495,7 +513,7 @@ function changeSelected(fn){
 }
 
 document.addEventListener("keydown",e=>{
-  if((e.key==="Delete"||e.key==="Backspace") && (selectedId||selectedTableId) && !isEditingField()){
+  if((e.key==="Delete"||e.key==="Backspace") && (selectedId||selectedTableId||selectedImageId) && !isEditingField()){
     e.preventDefault();deleteSelected();
   }
   if(e.key==="Escape" && document.activeElement?.isContentEditable){
@@ -508,10 +526,15 @@ document.addEventListener("keydown",e=>{
 
 function syncToolbar(){
   const b=selected(),t=selectedTable(),obj=b||t;
-  $("selectionActions")?.classList.toggle("hidden",!obj);
+  const im=selectedImage();
+  $("selectionActions")?.classList.toggle("hidden",!obj&&!im);
+  $("imageInspector").classList.toggle("hidden",!im);
+  $("textInspector").classList.toggle("hidden",!!im);
+  if(im){$("imageWidth").value=Math.round(im.width);$("imageWidthValue").textContent=`${Math.round(im.width)}%`;}
   $("tableInspector")?.classList.toggle("hidden",!t);
   $("selectionStatus").textContent=b?`Text ${blocks.indexOf(b)+1} selected — click again to edit • drag to move • Delete to remove`:(t?"Table selected — edit cells directly • drag ✥ to move • Delete to remove":"Click a text block or table to select it");
-  const panelTitle=document.querySelector(".panelHeader strong");if(panelTitle)panelTitle.textContent=t?"Table":b?"Text":"Properties";
+  if(im)$("selectionStatus").textContent="Image selected — drag to move • drag a corner to resize • Delete to remove";
+  const panelTitle=document.querySelector(".panelHeader strong");if(panelTitle)panelTitle.textContent=im?"Image":t?"Table":b?"Text":"Properties";
   $("sizeBtn").textContent=obj?`${obj.size||28}px ▾`:"Size ▾";
   $("boldBtn").classList.toggle("active",!!obj?.bold);$("italicBtn").classList.toggle("active",!!obj?.italic);
   if(t){
@@ -637,6 +660,7 @@ async function newSession(){
   if(!confirm("Start a new PostCard? Unsaved design changes will be cleared.")) return;
   await clearSavedState();
   bg={type:"solid",color:"#ED213A",gradient:null,image:null,imageObj:null,scale:"contain",darkness:20,posX:50,posY:50};
+  images=[];selectedImageId=null;
   blocks=[];tables=[];slides=[];activeSlide=0;selectedId=null;selectedTableId=null;nextId=1;nextTableId=1;currentFormat="landscape";
   $("postText").value=""; $("poweredByToggle").checked=false; $("poweredBy").style.display="none";
   setFormat("landscape"); applyBackground(); renderTables(); addText("What's on your mind?");
@@ -699,9 +723,9 @@ async function searchGiphy(){
     $("giphyResults").innerHTML=(j.data||[]).map(g=>`<img class="imageChoice" loading="lazy" decoding="async" data-gif="${g.images.original.url}" src="${g.images.fixed_height_small.url}">`).join("")||"No results.";
   }catch{$("giphyResults").textContent="Giphy search failed.";}
 }
-function serializeSlide(){ return {bg:JSON.parse(JSON.stringify({...bg,imageObj:null,gifFrames:null})),blocks:JSON.parse(JSON.stringify(blocks)),tables:JSON.parse(JSON.stringify(tables)),format:currentFormat,duration:Number($("slideDuration")?.value||3)}; }
+function serializeSlide(){ return {images:cloneForHistory(images),bg:JSON.parse(JSON.stringify({...bg,imageObj:null,gifFrames:null})),blocks:JSON.parse(JSON.stringify(blocks)),tables:JSON.parse(JSON.stringify(tables)),format:currentFormat,duration:Number($("slideDuration")?.value||3)}; }
 async function restoreSlide(sl){
-  if(!sl)return; bg=JSON.parse(JSON.stringify(sl.bg)); blocks=JSON.parse(JSON.stringify(sl.blocks)); tables=JSON.parse(JSON.stringify(sl.tables||[])); currentFormat=sl.format||"landscape";
+  if(!sl)return; images=cloneForHistory(sl.images||[]);selectedImageId=null; bg=JSON.parse(JSON.stringify(sl.bg)); blocks=JSON.parse(JSON.stringify(sl.blocks)); tables=JSON.parse(JSON.stringify(sl.tables||[])); currentFormat=sl.format||"landscape";
   if(bg.image){try{bg.imageObj=await loadImage(bg.image);}catch{bg.imageObj=null;}}
   $("slideDuration").value=sl.duration||3;$("slideDurationValue").textContent=`${sl.duration||3}s`;setFormat(currentFormat);applyBackground();renderBlocks();renderTables();
 }
@@ -780,6 +804,8 @@ async function exportCanvas(opts={}){
   if(bg.type==="solid"){ctx.fillStyle=bg.color;ctx.fillRect(0,0,w,h);}
   else if(bg.type==="gradient"){ctx.fillStyle=makeGradient(ctx,w,h,bg.gradient);ctx.fillRect(0,0,w,h);}
   else if(bg.type==="image"&&(opts.gifFrame||bg.imageObj))drawImageBg(ctx,opts.gifFrame||bg.imageObj,w,h);
+
+  await drawImageObjects(ctx,images,w,h);
 
   // Export every text block before drawing tables.
   for(const b of blocks){
@@ -949,6 +975,8 @@ function currentEditorState(){
     activeSlide,
     selectedId,
     selectedTableId,
+    images:cloneForHistory(images),
+    selectedImageId,
     nextId,
     nextTableId,
     currentFormat,
@@ -979,6 +1007,8 @@ async function restoreEditorState(){
     tables=Array.isArray(st.tables)?st.tables.map(t=>({font:"Arial, sans-serif",size:28,color:"#ffffff",align:"center",bold:false,italic:false,...t})):[];
     slides=Array.isArray(st.slides)?st.slides:[];
     activeSlide=Number.isInteger(st.activeSlide)?st.activeSlide:0;
+    images=cloneForHistory(st.images||[]);
+    selectedImageId=st.selectedImageId??null;
     selectedId=st.selectedId??null;
     selectedTableId=st.selectedTableId??null;
     nextId=st.nextId||1;
@@ -1051,39 +1081,39 @@ document.addEventListener("copy",e=>{
   if(isEditingField())return;
   const payload=clipboardPayload();if(!payload)return;
   e.preventDefault();writeObjectClipboard(e,payload);
-  setStatus(`${payload.type==="text"?"Text":"Table"} copied.`);
+  setStatus(`${payload.type==="text"?"Text":payload.type==="image"?"Image":"Table"} copied.`);
 },true);
 
 document.addEventListener("cut",e=>{
   if(isEditingField())return;
   const payload=clipboardPayload();if(!payload)return;
   e.preventDefault();writeObjectClipboard(e,payload);deleteSelected();
-  setStatus(`${payload.type==="text"?"Text":"Table"} cut.`);
+  setStatus(`${payload.type==="text"?"Text":payload.type==="image"?"Image":"Table"} cut.`);
 },true);
 
 document.addEventListener("paste",async e=>{
-  if(isEditingField())return;
   const data=e.clipboardData;if(!data)return;
-
+  // Keep native paste in form fields; image paste on the card creates an object,
+  // including when the caret is currently inside a text block or table cell.
+  const active=document.activeElement;
+  if(active && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName))return;
+  const imageItems=[...data.items].filter(item=>item.kind==="file"&&item.type.startsWith("image/"));
   const encoded=data.getData("application/x-postcard-object");
-  if(encoded){
+  if(encoded && !isEditingField()){
     try{if(pasteSelectedObject(JSON.parse(encoded))){e.preventDefault();return;}}catch(_){}
   }
-
-  const imageItem=[...data.items].find(item=>item.kind==="file"&&item.type.startsWith("image/"));
-  if(imageItem){
-    const file=imageItem.getAsFile();if(!file)return;
+  if(imageItems.length){
     e.preventDefault();
-    const src=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);});
-    await useImage(src);commitHistory();scheduleSave?.();setStatus("Image pasted as the background.");
+    try{for(const item of imageItems){const file=item.getAsFile();if(file)await addImageFile(file);}}
+    catch(error){setStatus("Could not paste image. Try copying the image again.",false);}
     return;
   }
-
+  if(isEditingField())return;
   const text=data.getData("text/plain");
   if(text && objectClipboard && text===clipboardPlainText(objectClipboard)){
     e.preventDefault();pasteSelectedObject(objectClipboard);return;
   }
-  if(text){e.preventDefault();addText(text);commitHistory();scheduleSave?.();setStatus("Text pasted.");}
+  if(text){e.preventDefault();addText(text);commitHistory();scheduleSave();setStatus("Text pasted.");}
 },true);
 
 document.addEventListener("selectionchange",()=>{

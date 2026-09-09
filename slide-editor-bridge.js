@@ -18,6 +18,8 @@ const SLIDE_RETURN_MARKER_KEY="postcardReturnToSlidesV1";
         [SLIDE_EDITOR_STATE_KEY]:{
           ...state,
           bg:structuredClone(slide.bg||{}),
+          images:structuredClone(slide.images||[]),
+          selectedImageId:null,
           blocks:structuredClone(slide.blocks||[]),
           tables:structuredClone(slide.tables||[]),
           currentFormat:slide.format||"landscape",

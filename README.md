@@ -547,3 +547,13 @@ PostCard has been reimagined as a desktop rich-canvas editor.
 - Restored the **Back to Slides** button while editing a slide.
 - Opening **Edit slide** now loads the selected slide instead of stale editor content.
 - Returning to Slides now saves the active slide immediately before navigation.
+
+## v0.9.3
+
+- Paste copied images or screenshots onto the card with Cmd+V / Ctrl+V. Images become separate objects, preserving the background.
+- Drag images to move them; drag any of the four corners or use the Image size slider to resize with proportions locked.
+- Add one or more image files through Image → Add image to card. Background image upload remains available separately.
+- Image objects support copy/cut/paste within PostCard, duplicate, delete, undo/redo, saved sessions, slide editing, and canvas/slideshow export.
+- No additional extension permissions.
+
+Validation: `node --test tests/image-objects.test.cjs`. Full Chrome interaction testing is still required; the automated browser download was unavailable in the build environment.
