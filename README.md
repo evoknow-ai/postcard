@@ -557,3 +557,14 @@ PostCard has been reimagined as a desktop rich-canvas editor.
 - No additional extension permissions.
 
 Validation: `node --test tests/image-objects.test.cjs`. Full Chrome interaction testing is still required; the automated browser download was unavailable in the build environment.
+
+
+## v0.9.4
+
+- Text objects use drag to move and double-click to edit. Press Escape or choose Move object to leave text editing; an already selected text object remains draggable in move mode.
+- Layers lists text, images and tables from front to back, including covered objects.
+- Bring to Front, Send to Back, Forward and Backward reorder objects across types. The card backdrop remains underneath all objects.
+- Arrow keys move the selected object by one output pixel; Shift+arrow moves ten pixels, including objects selected through Layers.
+- Layer order persists with saved cards, undo/redo, slide editing, PNG export and slideshow/video rendering.
+
+Validation: regression tests cover text/image pointer handlers, all resize corners, old and new object ordering, history/slide round trips and both export renderers. Live browser interaction testing could not run because the cloud browser blocked the local preview URL.

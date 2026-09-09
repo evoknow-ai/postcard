@@ -65,6 +65,21 @@
         </div>
       </div>
 
+      <section id="layersPanel" aria-label="Object layers">
+        <label>Layers <span class="layerHint">Front → back</span></label>
+        <div id="objectLayers"></div>
+        <div id="layerActions" class="layerActions">
+          <button id="bringFrontBtn">Bring to Front</button>
+          <button id="sendBackBtn">Send to Back</button>
+          <button id="bringForwardBtn">Forward</button>
+          <button id="sendBackwardBtn">Backward</button>
+        </div>
+        <div class="layerActions">
+          <button id="moveObjectBtn">Move object</button>
+          <button id="editTextObjectBtn">Edit text</button>
+        </div>
+        <p>Drag to move. Double-click text to edit. Press Esc to move again. Arrow keys nudge; Shift moves 10 px.</p>
+      </section>
       <div id="imageInspector" class="hidden">
         <label for="imageWidth">Image size <span id="imageWidthValue"></span></label>
         <input id="imageWidth" type="range" min="2" max="150" step="1">
@@ -326,6 +341,7 @@
 </dialog>
 
 <canvas id="exportCanvas" hidden></canvas>
+<script src="object-layers.js"></script>
 <script src="image-objects.js"></script>
 <script src="slide-editor-bridge.js"></script>
 <div hidden>

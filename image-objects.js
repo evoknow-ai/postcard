@@ -35,14 +35,14 @@ async function addImageFile(file){
   const img=await getImageObject(src),[w,h]=formats[currentFormat];
   const ratio=img.naturalWidth/img.naturalHeight;
   const width=Math.min(60,60*h*ratio/w);
-  images.push({id:crypto.randomUUID(),src,ratio,width,x:50,y:50});
+  images.push({id:crypto.randomUUID(),src,ratio,width,x:50,y:50,z:nextObjectZ({images,blocks,tables})});
   selectImage(images[images.length-1].id);
   commitHistory();scheduleSave();setStatus("Image added. Drag a corner to resize.");
 }
 function pasteImageObject(data){
   if(!data || !imageObjectSource(data.src) || !Number.isFinite(data.ratio) || data.ratio<=0 ||
      !Number.isFinite(data.width) || data.width<=0)return false;
-  const im={id:crypto.randomUUID(),src:data.src,ratio:data.ratio,width:Math.min(150,data.width),
+  const im={id:crypto.randomUUID(),z:nextObjectZ({images,blocks,tables}),src:data.src,ratio:data.ratio,width:Math.min(150,data.width),
     x:Math.min(95,(Number(data.x)||50)+4),y:Math.min(95,(Number(data.y)||50)+4)};
   images.push(im);selectImage(im.id);commitHistory();scheduleSave();setStatus("Image pasted.");return true;
 }

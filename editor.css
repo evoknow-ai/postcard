@@ -274,3 +274,18 @@
 #imageInspector{padding:12px 0;border-bottom:1px solid #384152;margin-bottom:12px}
 #imageInspector input{width:100%}
 #imageInspector p{font-size:12px;color:#aeb9ca}
+
+/* Containers share the stage stacking context; individual objects own order. */
+#imageLayer,#textLayer,#tableLayer{z-index:auto;pointer-events:none}
+#poweredBy{z-index:2147483647;pointer-events:none}
+.textBlock{cursor:move;user-select:none;touch-action:none}
+.textBlock[contenteditable="true"]{cursor:text;user-select:text;touch-action:auto}
+#layersPanel{border-bottom:1px solid #384152;padding-bottom:12px;margin-bottom:12px}
+#layersPanel p{font-size:12px;color:#aeb9ca;margin:8px 0 0}
+.layerHint{float:right;font-size:11px}
+#objectLayers{display:flex;flex-direction:column;gap:4px;max-height:140px;overflow-y:auto}
+#objectLayers button{text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:7px 9px;font-size:12px}
+#objectLayers button[aria-pressed="true"]{border-color:#4f9eff;background:#14355a}
+.layerActions{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:8px}
+.layerActions button{font-size:11px;padding:7px 4px}
+.layerActions button:disabled{opacity:.4;cursor:default}

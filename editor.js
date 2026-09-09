@@ -182,7 +182,7 @@ function pasteSelectedObject(payload=objectClipboard){
     src.id=nextId++;
     src.x=Math.min(92,(src.x||50)+4);
     src.y=Math.min(92,(src.y||50)+4);
-    selectedImageId=null;
+    selectedImageId=null;src.z=nextObjectZ({images,blocks,tables});
     blocks.push(src);
     selectedId=src.id; selectedTableId=null;
     renderBlocks(); renderTables(); commitHistory(); scheduleSave?.();
@@ -194,7 +194,7 @@ function pasteSelectedObject(payload=objectClipboard){
     src.id=nextTableId++;
     src.x=Math.min(92,(src.x||50)+4);
     src.y=Math.min(92,(src.y||50)+4);
-    selectedImageId=null;
+    selectedImageId=null;src.z=nextObjectZ({images,blocks,tables});
     tables.push(src);
     selectedTableId=src.id; selectedId=null;
     renderTables(); renderBlocks(); commitHistory(); scheduleSave?.();
@@ -305,6 +305,7 @@ function addTable(rows,cols){
   });
   applyTableTemplate(t,"midnight");
   selectedImageId=null;renderImages();
+  t.z=nextObjectZ({images,blocks,tables});
   tables.push(t);selectedTableId=t.id;selectedId=null;renderTables();closeMenus();scheduleSave?.();
   setTimeout(()=>document.querySelector(`.tableBlock[data-id="${t.id}"] td`)?.focus(),0);
 }
@@ -316,7 +317,7 @@ function renderBlocks(){
     let el=old.get(b.id);
     if(!el){
       el=document.createElement("div");
-      el.className="textBlock";el.dataset.id=b.id;el.contentEditable="true";el.spellcheck=true;
+      el.className="textBlock";el.dataset.id=b.id;el.contentEditable="false";el.spellcheck=true;el.tabIndex=0;el.title="Drag to move; double-click to edit text";
       layer.appendChild(el);wireTextBlock(el);
     }
     if(document.activeElement!==el)el.innerText=b.text;
@@ -360,9 +361,15 @@ function wireTextBlock(el){
   el.addEventListener("keyup",()=>saveCaret(el));
   el.addEventListener("input",()=>{const b=block(id());if(b)b.text=el.innerText;saveCaret(el);commitHistory?.();});
 
+  el.addEventListener("dblclick",e=>{
+    e.preventDefault();e.stopPropagation();drag=null;
+    el.contentEditable="true";el.focus();placeCaretFromPoint(el,e.clientX,e.clientY);syncToolbar();
+  });
+  el.addEventListener("blur",()=>{el.contentEditable="false";syncToolbar();});
+
   // Robust direct manipulation:
   // pointer down captures the pointer so contenteditable selection cannot steal
-  // the drag. A short click still enters text editing at the clicked location.
+  // the drag. Double-click explicitly enters text editing.
   el.addEventListener("pointerdown",e=>{
     if(e.button!==0) return;
     const bid=id();
@@ -391,7 +398,7 @@ function wireTextBlock(el){
 
     // In text-edit mode, pointer gestures stay native so dragging highlights
     // characters and double-clicking selects words.
-    if(document.activeElement===el)return;
+    if(el.isContentEditable && document.activeElement===el)return;
 
     e.preventDefault();
     try{el.setPointerCapture(e.pointerId);}catch(_){}
@@ -404,16 +411,8 @@ function wireTextBlock(el){
 
   el.addEventListener("pointerup",e=>{
     if(!drag || drag.id!==id() || drag.pointerId!==e.pointerId)return;
-    const wasClick=drag.type==="text" && !drag.moved;
     try{el.releasePointerCapture(e.pointerId);}catch(_){}
-    if(wasClick && drag.wasSelected){
-      const x=e.clientX,y=e.clientY;
-      setTimeout(()=>{
-        el.focus();
-        placeCaretFromPoint(el,x,y);
-        saveCaret(el);
-      },0);
-    }
+
   });
 }
 
@@ -489,10 +488,11 @@ function addText(text="New text"){
   selectedImageId=null;
   const b=makeBlock(text);
   if(blocks.length)b.y=Math.min(85,40+blocks.length*11);
+  b.z=nextObjectZ({images,blocks,tables});
   blocks.push(b);selectedId=b.id;renderBlocks();
-  setTimeout(()=>{const el=document.querySelector(`.textBlock[data-id="${b.id}"]`);if(el){el.focus();const r=document.createRange(),s=window.getSelection();r.selectNodeContents(el);s.removeAllRanges();s.addRange(r);}},0);
+  setTimeout(()=>{const el=document.querySelector(`.textBlock[data-id="${b.id}"]`);if(el){el.contentEditable="true";el.focus();const r=document.createRange(),s=window.getSelection();r.selectNodeContents(el);s.removeAllRanges();s.addRange(r);}},0);
 }
-function duplicateSelected(){if(selectedImage())return pasteImageObject(selectedImage());const b=selected();if(b){const n={...b,id:nextId++,x:Math.min(90,b.x+5),y:Math.min(90,b.y+5)};blocks.push(n);selectedId=n.id;renderBlocks();return;}if(selectedTableId){const t=tables.find(x=>x.id===selectedTableId);if(!t)return;const n=JSON.parse(JSON.stringify(t));n.id=nextTableId++;n.x=Math.min(90,n.x+4);n.y=Math.min(90,n.y+4);tables.push(n);selectedTableId=n.id;renderTables();}}
+function duplicateSelected(){if(selectedImage())return pasteImageObject(selectedImage());const b=selected();if(b){const n={...b,id:nextId++,x:Math.min(90,b.x+5),y:Math.min(90,b.y+5)};n.z=nextObjectZ({images,blocks,tables});blocks.push(n);selectedId=n.id;renderBlocks();return;}if(selectedTableId){const t=tables.find(x=>x.id===selectedTableId);if(!t)return;const n=JSON.parse(JSON.stringify(t));n.id=nextTableId++;n.x=Math.min(90,n.x+4);n.y=Math.min(90,n.y+4);n.z=nextObjectZ({images,blocks,tables});tables.push(n);selectedTableId=n.id;renderTables();}}
 function deleteSelected(){
   if(selectedImage()){images=images.filter(im=>im.id!==selectedImageId);selectedImageId=null;renderBlocks();commitHistory();scheduleSave();setStatus("Image deleted.");return true;}
   if(selectedId!=null){
@@ -525,6 +525,7 @@ document.addEventListener("keydown",e=>{
 });
 
 function syncToolbar(){
+  applyObjectLayers();
   const b=selected(),t=selectedTable(),obj=b||t;
   const im=selectedImage();
   $("selectionActions")?.classList.toggle("hidden",!obj&&!im);
@@ -532,7 +533,7 @@ function syncToolbar(){
   $("textInspector").classList.toggle("hidden",!!im);
   if(im){$("imageWidth").value=Math.round(im.width);$("imageWidthValue").textContent=`${Math.round(im.width)}%`;}
   $("tableInspector")?.classList.toggle("hidden",!t);
-  $("selectionStatus").textContent=b?`Text ${blocks.indexOf(b)+1} selected — click again to edit • drag to move • Delete to remove`:(t?"Table selected — edit cells directly • drag ✥ to move • Delete to remove":"Click a text block or table to select it");
+  $("selectionStatus").textContent=b?`Text ${blocks.indexOf(b)+1} selected — double-click to edit • drag to move • Delete to remove`:(t?"Table selected — edit cells directly • drag ✥ to move • Delete to remove":"Click a text block or table to select it");
   if(im)$("selectionStatus").textContent="Image selected — drag to move • drag a corner to resize • Delete to remove";
   const panelTitle=document.querySelector(".panelHeader strong");if(panelTitle)panelTitle.textContent=im?"Image":t?"Table":b?"Text":"Properties";
   $("sizeBtn").textContent=obj?`${obj.size||28}px ▾`:"Size ▾";
@@ -805,11 +806,8 @@ async function exportCanvas(opts={}){
   else if(bg.type==="gradient"){ctx.fillStyle=makeGradient(ctx,w,h,bg.gradient);ctx.fillRect(0,0,w,h);}
   else if(bg.type==="image"&&(opts.gifFrame||bg.imageObj))drawImageBg(ctx,opts.gifFrame||bg.imageObj,w,h);
 
-  await drawImageObjects(ctx,images,w,h);
-
-  // Export every text block before drawing tables.
-  for(const b of blocks){
-    if(!b.text || !b.text.trim()) continue;
+  await drawOrderedObjects(ctx,{images,blocks,tables},w,h,b=>{
+    if(!b.text || !b.text.trim()) return;
     ctx.font=`${b.italic?"italic ":""}${b.bold?"700":"400"} ${b.size}px ${b.font}`;
     ctx.fillStyle=b.color;
     ctx.textBaseline="middle";
@@ -826,10 +824,7 @@ async function exportCanvas(opts={}){
     const y0=h*(b.y/100)-((lines.length-1)*lineHeight)/2;
 
     lines.forEach((line,i)=>ctx.fillText(line,x,y0+i*lineHeight,maxWidth));
-  }
-
-  // Tables are rendered after text blocks, matching the visible canvas layer order.
-  for(const raw of tables){
+  },raw=>{
     const t=normalizeTable(raw);
     const x=w*t.x/100,y=h*t.y/100,tw=w*t.width/100,th=h*(t.height||Math.max(16,t.rows*9))/100;
     const cw=tw/t.cols,ch=th/t.rows;
@@ -843,7 +838,7 @@ async function exportCanvas(opts={}){
         ctx.fillText(t.cells[rr]?.[cc]||"",left+cw/2,top+ch/2,cw-12);
       }
     }
-  }
+  });
   ctx.shadowColor="transparent";
   if($("poweredByToggle").checked){ctx.font="500 18px Arial";ctx.fillStyle="rgba(255,255,255,.72)";ctx.textAlign="right";ctx.fillText("Powered by MyPoint.Cards",w-20,h-20);}
   return c;
