@@ -1496,7 +1496,7 @@ async function returnToSlides(){
   try{
     await saveNowBeforeNavigation();
     await chrome.storage.local.remove(RETURN_TO_SLIDES_KEY);
-    location.href="slides.html";
+    location.href="slides.html"+location.search;
   }catch(error){
     editorNavigating=false;
     console.error("Could not save slide:",error);

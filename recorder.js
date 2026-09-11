@@ -607,11 +607,12 @@ window.addEventListener("focus",refreshDevices);
 $("backToEditor")?.addEventListener("click",async()=>{
   try{
     if(embedded)parent.postMessage({type:"POSTCARD_CLOSE_RECORDER"},"*");
-    await chrome.runtime.sendMessage({
+    const result=await chrome.runtime.sendMessage({
       type:"POSTCARD_OPEN_EDITOR",
       sourceTabId,
       sourceWindowId
     });
+    if(!result?.ok)throw new Error(result?.error||"Editor did not open.");
     if(!embedded)window.close();
   }catch(e){
     status("Could not reopen editor: "+e.message,false);

@@ -17,3 +17,10 @@ Validation limits for v0.9.5: local tests cover geometry, ordered rendering, fra
 
 
 Version 0.9.11 uses the complete 0.9.10 feature baseline from `feature/image-paste-resize`. Do not rebuild this release from the older `main` branch. The editor now loads directly from `editor.html`; do not restore the removed bridge loader. Startup tests read script tags from the HTML and exercise the add/edit/return flow, reordered IDs, delayed/failed saves, and duration/audio preservation.
+
+
+## Required release gate
+
+The user requested a permanent feature/bug checklist after duplicate windows returned. `AGENTS.md` defines the mandatory process. `docs/qa/catalog.json` is the editable 62-case inventory; `docs/REGRESSION-CHECKLIST.md` is its generated human-readable form; `docs/RELEASE-STATUS.md` records current limitations.
+
+Use `node scripts/release-check.cjs --automated` for automatic checks. Distribution requires `node scripts/release-check.cjs --release --evidence docs/qa/evidence.json --package /absolute/path/candidate.zip --report` to exit 0. Python 3 validates ZIP contents against runtime source. Missing or stale browser evidence blocks a release even when automatic checks pass.

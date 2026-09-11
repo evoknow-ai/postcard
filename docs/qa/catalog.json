@@ -1,0 +1,627 @@
+{
+  "schemaVersion": 1,
+  "policy": "Every case requires current-candidate Chrome evidence. Automated suites are partial coverage, not a full-feature pass.",
+  "cases": [
+    {
+      "id": "WIN-01",
+      "area": "Windows",
+      "title": "Repeated toolbar launches",
+      "procedure": "Click the extension 20 times, including rapid clicks.",
+      "expected": "Exactly one editor workspace; no blank New Tab window.",
+      "automatedTests": [
+        "tests/windows.test.cjs"
+      ],
+      "regression": "Duplicate PostCard Editor / New Tab windows reported September 11."
+    },
+    {
+      "id": "WIN-02",
+      "area": "Windows",
+      "title": "Preserve open draft and Slides",
+      "procedure": "Edit text without leaving; reopen via toolbar, then repeat while in Slides.",
+      "expected": "Focus existing workspace without reload, lost edits, or extra window.",
+      "automatedTests": [
+        "tests/windows.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "WIN-03",
+      "area": "Windows",
+      "title": "Worker restart and minimized window",
+      "procedure": "Minimize editor; stop extension service worker in DevTools; click toolbar.",
+      "expected": "Existing window is restored and focused; no duplicate.",
+      "automatedTests": [
+        "tests/windows.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "WIN-04",
+      "area": "Windows",
+      "title": "Close and reopen; failed launch",
+      "procedure": "Close editor and reopen; use mocked query/create failures.",
+      "expected": "One replacement after closing; failures do not multiply windows; retry succeeds.",
+      "automatedTests": [
+        "tests/windows.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "WIN-05",
+      "area": "Windows",
+      "title": "Settings reuse",
+      "procedure": "Open Settings repeatedly while editor stays open.",
+      "expected": "One Settings window, separate from one editor.",
+      "automatedTests": [
+        "tests/windows.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "WIN-06",
+      "area": "Windows",
+      "title": "Recorder return",
+      "procedure": "Go Editor \u2192 Recorder \u2192 Back to editor ten times; test a failed editor open.",
+      "expected": "At most one editor and one recorder; no blank windows; recorder stays open on failed return.",
+      "automatedTests": [
+        "tests/windows.test.cjs"
+      ],
+      "regression": "Duplicate recorder tabs and focus handoff were fixed in v0.8.3\u2013v0.8.7."
+    },
+    {
+      "id": "WIN-07",
+      "area": "Windows",
+      "title": "Social source survives Slides",
+      "procedure": "Launch from a composer, enter Slides, edit and return, then insert a card.",
+      "expected": "Insertion targets the originating browser window; navigation preserves source IDs.",
+      "automatedTests": [
+        "tests/startup.test.cjs"
+      ],
+      "regression": "Source tab/window parameters were discarded during editor/Slides navigation."
+    },
+    {
+      "id": "WIN-08",
+      "area": "Windows",
+      "title": "Context menu selection",
+      "procedure": "Right-click selected page text with editor closed, then already open.",
+      "expected": "Selection can be used to create a card without duplicate windows or silently losing a draft.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "TXT-01",
+      "area": "Text",
+      "title": "Create and edit",
+      "procedure": "Add two text blocks; double-click and type multiline text.",
+      "expected": "Both blocks stay independently editable; caret and selection work.",
+      "automatedTests": [
+        "tests/startup.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "TXT-02",
+      "area": "Text",
+      "title": "Drag and deselect",
+      "procedure": "Select/drag text, click empty canvas, then drag again.",
+      "expected": "Text moves; blank-canvas click clears selection; editing does not unexpectedly drag.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": "Text movement and clicking-away deselection regressions."
+    },
+    {
+      "id": "TXT-03",
+      "area": "Text",
+      "title": "Resize and orientation",
+      "procedure": "Resize at 0\u00b0, 45\u00b0, 90\u00b0, 180\u00b0, 270\u00b0; use dial, numeric entry and snapping.",
+      "expected": "Orientation controls exist; common angles snap; resize follows the rotated axes.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": "Rotation dial vanished; rotated resize broke."
+    },
+    {
+      "id": "TXT-04",
+      "area": "Text",
+      "title": "Text formatting",
+      "procedure": "Change font, size, color, bold, italic, alignment, width, line height and shadow.",
+      "expected": "Canvas and exported image agree for each selected block.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "TXT-05",
+      "area": "Text",
+      "title": "Multilingual fonts and emoji",
+      "procedure": "Enter Bangla, Arabic, Japanese, Chinese and emoji; change Google Font; export PNG.",
+      "expected": "Text remains legible and matches the editor; missing fonts report/fall back sensibly.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "OBJ-01",
+      "area": "Objects",
+      "title": "Image clipboard and file import",
+      "procedure": "Paste a screenshot; insert an image file; add a second image.",
+      "expected": "Each image appears as an independently selectable object.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": "Missing image copy/paste support."
+    },
+    {
+      "id": "OBJ-02",
+      "area": "Objects",
+      "title": "Image movement and resize",
+      "procedure": "Drag and resize images from all four corners in every card format.",
+      "expected": "Aspect ratio and opposite anchor remain correct; other objects do not move.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "OBJ-03",
+      "area": "Objects",
+      "title": "Layer ordering",
+      "procedure": "Overlap text, image and table; move each forward/back and select covered objects.",
+      "expected": "All types share the same order in editor and export; text remains reachable.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": "Pasted image blocked text; foreground/background controls missing."
+    },
+    {
+      "id": "OBJ-04",
+      "area": "Objects",
+      "title": "Copy, cut, paste and duplicate",
+      "procedure": "Copy/cut/paste/duplicate each object type; use keyboard and available buttons.",
+      "expected": "Independent copies with unique IDs; native text selection clipboard still works.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "OBJ-05",
+      "area": "Objects",
+      "title": "Delete selection",
+      "procedure": "Delete text/image/table using trash, Delete, Backspace and cut; type Backspace inside text.",
+      "expected": "Only selected object is removed; editing Backspace deletes characters.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": "Deletion controls and text selection regressions."
+    },
+    {
+      "id": "OBJ-06",
+      "area": "Objects",
+      "title": "Undo and redo",
+      "procedure": "Add, move, resize, rotate, reorder, delete, then undo and redo repeatedly.",
+      "expected": "Content, geometry and layer order restore without mutating neighboring slides.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "TBL-01",
+      "area": "Tables",
+      "title": "Table editing and formatting",
+      "procedure": "Add a table; edit cells; change template/header/font/borders/colors; drag and resize.",
+      "expected": "Cells stay editable and all styles/geometry survive export and reopen.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "BG-01",
+      "area": "Backgrounds",
+      "title": "Solid and gradients",
+      "procedure": "Use solid, preset and custom gradients; switch formats; reopen.",
+      "expected": "Background renders consistently on canvas, PNG and Slides.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "BG-02",
+      "area": "Backgrounds",
+      "title": "Image framing",
+      "procedure": "Upload a background; test Cover/Contain/Actual, darkness and panning.",
+      "expected": "Framing is preserved in editor, exported card and Slides.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "BG-03",
+      "area": "Backgrounds",
+      "title": "Giphy and Featured",
+      "procedure": "Search and select Giphy/Featured media; simulate network failure.",
+      "expected": "Results apply correctly; failures show useful errors without breaking the editor.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "BG-04",
+      "area": "Backgrounds",
+      "title": "Animated GIF background and object",
+      "procedure": "Use a GIF with visibly different frames as background and as an image object.",
+      "expected": "Video contains multiple frames, correct loop timing and ordered overlays.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": "GIF export froze on first frame."
+    },
+    {
+      "id": "SLD-01",
+      "area": "Slides",
+      "title": "Add and edit blank slide",
+      "procedure": "Create two slides; use +; Edit slide; add text; Back to Slides; reopen.",
+      "expected": "The new slide is editable and its edits persist; neighbors remain unchanged.",
+      "automatedTests": [
+        "tests/startup.test.cjs"
+      ],
+      "regression": "New slides could not be edited; Back to Slides disappeared."
+    },
+    {
+      "id": "SLD-02",
+      "area": "Slides",
+      "title": "Duplicate, reorder and delete",
+      "procedure": "Duplicate a slide, move it, delete another, then edit the duplicate.",
+      "expected": "Stable slide IDs target the intended slide; remaining content stays intact.",
+      "automatedTests": [
+        "tests/startup.test.cjs"
+      ],
+      "regression": "Slides overwrote the wrong slide."
+    },
+    {
+      "id": "SLD-03",
+      "area": "Slides",
+      "title": "Thumbnail navigation",
+      "procedure": "Use thumbnails, previous/next, drag reorder, Earlier/Later and preview.",
+      "expected": "Selection, index, preview, thumbnail and editor agree.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "SLD-04",
+      "area": "Slides",
+      "title": "Duration persistence",
+      "procedure": "Set distinct durations including 120 seconds; edit via both navigation routes.",
+      "expected": "Durations never reset to 3 seconds and totals stay correct.",
+      "automatedTests": [
+        "tests/startup.test.cjs"
+      ],
+      "regression": "Long slide/music clipped to 3 seconds."
+    },
+    {
+      "id": "SLD-05",
+      "area": "Slides",
+      "title": "Narration per slide",
+      "procedure": "Record narration on two slides; play/pause/delete one recording; edit and reorder slides.",
+      "expected": "Narration stays associated with the correct slide and voice levels persist.",
+      "automatedTests": [
+        "tests/startup.test.cjs"
+      ],
+      "regression": "Per-slide recording controls disappeared; metadata must survive editing."
+    },
+    {
+      "id": "SLD-06",
+      "area": "Slides",
+      "title": "Music across slideshow",
+      "procedure": "Add MP3; play/pause/stop/remove; set voice and music volumes separately.",
+      "expected": "One music track spans slides and both volume controls affect export.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": "Slideshow music and volume controls disappeared."
+    },
+    {
+      "id": "SLD-07",
+      "area": "Slides",
+      "title": "Full music duration",
+      "procedure": "Use one 3-second slide and a longer music track; export with option off and on.",
+      "expected": "Off uses configured duration; on includes full track by extending last slide; narration preserved.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": "Long music was truncated; full-length option required."
+    },
+    {
+      "id": "SLD-08",
+      "area": "Slides",
+      "title": "Ten-minute limit",
+      "procedure": "Set duration to just below, at and above 600 seconds; add/reorder slides.",
+      "expected": "Limit is applied consistently; no Free/Pro gate or hardcoded activation key.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "SLD-09",
+      "area": "Slides",
+      "title": "Reload and slow/failed storage",
+      "procedure": "Save/reopen deck; throttle/fail storage in test harness; return immediately after editing.",
+      "expected": "Save completes before navigation; failures keep editor open and never save empty startup state.",
+      "automatedTests": [
+        "tests/startup.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "EXP-01",
+      "area": "Exports",
+      "title": "PNG fidelity",
+      "procedure": "Export all three formats with rotated text, image, table and background.",
+      "expected": "Dimensions, colors, fonts, geometry and stacking match the visible card.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "EXP-02",
+      "area": "Exports",
+      "title": "Animated card MP4",
+      "procedure": "Apply text entrance and background pan/zoom; export with chosen duration.",
+      "expected": "Actual playable MP4 contains motion and matches requested duration.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": "Animated card MP4 support disappeared."
+    },
+    {
+      "id": "EXP-03",
+      "area": "Exports",
+      "title": "Slideshow MP4",
+      "procedure": "Export multiple slides with GIF, text motion, narration and music.",
+      "expected": "Real MP4 plays with correct order, timing, dimensions, audio and transitions.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": "Slideshow video export and audio features disappeared."
+    },
+    {
+      "id": "EXP-04",
+      "area": "Exports",
+      "title": "Export progress and long audio",
+      "procedure": "Export a long one-slide audio video; observe modal, percentage, completion and failure.",
+      "expected": "Progress remains visible and responsive; completion occurs only after output is ready.",
+      "automatedTests": [
+        "tests/startup.test.cjs"
+      ],
+      "regression": "Progress dialog disappeared; long audio progress appeared stalled."
+    },
+    {
+      "id": "EXP-05",
+      "area": "Exports",
+      "title": "Origin-clean and encoder errors",
+      "procedure": "Use remote GIF/image; simulate fetch failure and unavailable MP4 encoder.",
+      "expected": "No captureStream tainted-canvas crash; errors are visible; WebM never mislabeled as MP4.",
+      "automatedTests": [
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": "captureStream origin-clean failures; export duration/format mismatches."
+    },
+    {
+      "id": "CAM-01",
+      "area": "Recorder",
+      "title": "Camera and microphone devices",
+      "procedure": "Start/stop camera; choose camera/mic; deny permission; remove device; close recorder.",
+      "expected": "Useful errors; selections persist; all media tracks stop when stopped/closed.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "CAM-02",
+      "area": "Recorder",
+      "title": "Record, stop, retake and download",
+      "procedure": "Record voice and overlay; stop, play, retake and download.",
+      "expected": "Playable file includes intended microphone audio; repeated cycles remain usable.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "CAM-03",
+      "area": "Recorder",
+      "title": "Framing and mirror",
+      "procedure": "Verify default Cover; test Contain/Actual, zoom 1\u20133\u00d7, wheel zoom, pan, mirror and reset.",
+      "expected": "Framing is correct in preview and recorded output; reset works.",
+      "automatedTests": [],
+      "regression": "Cover default and framing helpers were restored previously."
+    },
+    {
+      "id": "CAM-04",
+      "area": "Recorder",
+      "title": "Overlay text and independent drag",
+      "procedure": "Change overlay/font size/color; drag text; pan camera elsewhere.",
+      "expected": "Text hit target wins; video pan does not steal text drag; recording includes overlay.",
+      "automatedTests": [],
+      "regression": "Overlay text dragging repeatedly broke."
+    },
+    {
+      "id": "CAM-05",
+      "area": "Recorder",
+      "title": "Background None/Blur/Color/Image",
+      "procedure": "Try all modes while moving head/shoulders and wearing headphones; record each.",
+      "expected": "Person stays sharp; no major halo, skin bleed, beard artifact or heavy ghost trail.",
+      "automatedTests": [],
+      "regression": "Segmentation mask, halo, color-bleed and jaw artifacts were repaired in v0.8.x."
+    },
+    {
+      "id": "CAM-06",
+      "area": "Recorder",
+      "title": "Bundled model and WASM startup",
+      "procedure": "Load unpacked with network offline for model assets; start all background modes.",
+      "expected": "Local model/WASM assets load under MV3 CSP; no missing helper crash.",
+      "automatedTests": [],
+      "regression": "MediaPipe loading, missing stopSegmentationProcessor/currentVideoRect regressions."
+    },
+    {
+      "id": "SOC-01",
+      "area": "Social insertion",
+      "title": "X/Twitter composer",
+      "procedure": "Use a disposable draft on X/Twitter; insert PNG and caption; verify video where offered; do not publish.",
+      "expected": "Correct supported composer receives media/caption; unsupported state has clear error; source draft remains intact.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "SOC-02",
+      "area": "Social insertion",
+      "title": "Facebook composer",
+      "procedure": "Use a disposable draft on Facebook; insert PNG and caption; verify video where offered; do not publish.",
+      "expected": "Correct supported composer receives media/caption; unsupported state has clear error; source draft remains intact.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "SOC-03",
+      "area": "Social insertion",
+      "title": "Instagram composer",
+      "procedure": "Use a disposable draft on Instagram; insert PNG and caption; verify video where offered; do not publish.",
+      "expected": "Correct supported composer receives media/caption; unsupported state has clear error; source draft remains intact.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "SOC-04",
+      "area": "Social insertion",
+      "title": "LinkedIn composer",
+      "procedure": "Use a disposable draft on LinkedIn; insert PNG and caption; verify video where offered; do not publish.",
+      "expected": "Correct supported composer receives media/caption; unsupported state has clear error; source draft remains intact.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "SOC-05",
+      "area": "Social insertion",
+      "title": "Reddit composer",
+      "procedure": "Use a disposable draft on Reddit; insert PNG and caption; verify video where offered; do not publish.",
+      "expected": "Correct supported composer receives media/caption; unsupported state has clear error; source draft remains intact.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "SOC-06",
+      "area": "Social insertion",
+      "title": "Bluesky composer",
+      "procedure": "Use a disposable draft on Bluesky; insert PNG and caption; verify video where offered; do not publish.",
+      "expected": "Correct supported composer receives media/caption; unsupported state has clear error; source draft remains intact.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "AI-01",
+      "area": "Automation",
+      "title": "Provider, model and key settings",
+      "procedure": "Switch OpenAI/Anthropic, preset/custom model; save and reopen; show/hide key.",
+      "expected": "Settings persist and selected model is used; key is not exposed in logs.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "AI-02",
+      "area": "Automation",
+      "title": "AI generation and errors",
+      "procedure": "Use mocked provider responses and errors for Test AI.",
+      "expected": "JSON is parsed; card/caption lengths handled; errors are readable; no post is submitted.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "AI-03",
+      "area": "Automation",
+      "title": "Scheduling and deduplication",
+      "procedure": "Use a fake clock with recurring/one-time schedules, days, AM/PM and disabled state.",
+      "expected": "Correct local-time execution once per scheduled slot; one-time disables after run.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "AI-04",
+      "area": "Automation",
+      "title": "Run/post and history",
+      "procedure": "Use a mocked social adapter to run success/failure, retry and history clear.",
+      "expected": "History accurately reports outcomes; no real post or paid API call without explicit authorization.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "STATE-01",
+      "area": "Persistence",
+      "title": "Restart and upgrade existing state",
+      "procedure": "Load a pre-change saved deck with images, tables, rotation and audio; close/reopen Chrome.",
+      "expected": "Existing project survives with all content/settings and unique object/slide IDs.",
+      "automatedTests": [
+        "tests/startup.test.cjs",
+        "tests/image-objects.test.cjs"
+      ],
+      "regression": ""
+    },
+    {
+      "id": "UI-01",
+      "area": "Interface",
+      "title": "Layout and button spacing",
+      "procedure": "Inspect editor, Slides, recorder and dialogs at normal size, smaller window and 200% zoom.",
+      "expected": "Controls remain visible, usable and separated; no touching export buttons.",
+      "automatedTests": [],
+      "regression": "Export dialog buttons touched; controls repeatedly disappeared."
+    },
+    {
+      "id": "UI-02",
+      "area": "Interface",
+      "title": "Keyboard and focus",
+      "procedure": "Use Tab, Enter, Escape, copy/paste, Delete and rotation arrow keys across dialogs/editor.",
+      "expected": "Focus and shortcuts operate the intended control without accidental deletion.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "REL-01",
+      "area": "Release",
+      "title": "Version consistency",
+      "procedure": "Compare manifest, popup, editor footer, credits and Settings; compare with published store version.",
+      "expected": "All labels match candidate version, which is greater than store version.",
+      "automatedTests": [],
+      "regression": "Manifest was lower than published 0.9.9; UI version labels were stale."
+    },
+    {
+      "id": "REL-02",
+      "area": "Release",
+      "title": "Feature baseline and complete assets",
+      "procedure": "Review diff against previous delivered feature baseline; inspect script references and local assets.",
+      "expected": "No recovered feature or bundled asset disappears; do not start from stale main.",
+      "automatedTests": [],
+      "regression": "Older main branch erased rotation, motion and audio features."
+    },
+    {
+      "id": "REL-03",
+      "area": "Release",
+      "title": "Privacy and permissions",
+      "procedure": "Inspect manifest/Privacy link and key storage; review any permission changes.",
+      "expected": "Policy link works; declared data handling matches behavior; no unexplained permission expansion.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "REL-04",
+      "area": "Release",
+      "title": "Exact release package smoke",
+      "procedure": "Install final ZIP unpacked in a disposable Chrome profile; repeat window/slide/export smoke.",
+      "expected": "Correct version loads with no extension errors; record exact ZIP SHA-256 and source fingerprint.",
+      "automatedTests": [],
+      "regression": ""
+    },
+    {
+      "id": "REL-05",
+      "area": "Release",
+      "title": "Historical promise audit",
+      "procedure": "Compare README feature history with UI: especially old JPG/WebP downloads and each social adapter.",
+      "expected": "Any missing previously promised capability is recorded as a defect or explicitly retired, never silently dropped.",
+      "automatedTests": [],
+      "regression": ""
+    }
+  ]
+}

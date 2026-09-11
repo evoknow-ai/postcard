@@ -316,7 +316,7 @@ async function openSlideEditor(editSlide=true){
     await saveState();
     if(editSlide)await chrome.storage.local.set({[RETURN_TO_SLIDES_KEY]:{slideId:slides[activeSlide]?.id}});
     else await chrome.storage.local.remove(RETURN_TO_SLIDES_KEY);
-    location.replace("editor.html");
+    location.replace("editor.html"+location.search);
   }catch(error){
     openingEditor=false;
     console.error("Could not open slide editor:",error);

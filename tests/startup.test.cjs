@@ -109,3 +109,11 @@ test('slow state restoration cannot schedule an empty draft save',async()=>{
  f.run('scheduleSave()');assert.equal(f.run('saveTimer'),null);
  release();await settle();assert.equal(f.run('blocks.length'),0);assert.equal(f.run('slides.length'),2);
 });
+
+test('WIN-07 editor and Slides navigation preserve originating social tab and window',async()=>{
+ const storage=savedDeck(),query='?sourceTabId=42&sourceWindowId=8';
+ const f=fixture('editor.html',storage);f.c.location.search=query;f.start();await settle();
+ await f.registry.get('backToSlidesBtn').listeners.click();assert.equal(f.c.location.href,'slides.html'+query);
+ const slides=fixture('slides.html',storage);slides.c.location.search=query;slides.start();await settle();
+ await slides.registry.get('editBtn').onclick();assert.equal(slides.c.location.href,'editor.html'+query);
+});

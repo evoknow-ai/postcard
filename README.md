@@ -4,6 +4,10 @@ PostCard is a Chrome extension that creates shareable text cards and inserts the
 
 **Powered by [MyPoint.Cards](https://mypoint.cards/)**
 
+## Required regression checks
+
+See [Feature and regression checklist](docs/REGRESSION-CHECKLIST.md), [current release status](docs/RELEASE-STATUS.md), and [maintenance instructions](AGENTS.md). Every release requires all checklist cases, actual Chrome evidence for the exact source/package, and the release gate. Passing mocked tests alone does not approve a release.
+
 ## MVP
 
 - Card editor with text, background color, text color, font size, alignment, shadow, and three social-friendly sizes.

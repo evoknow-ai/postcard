@@ -10,14 +10,43 @@ async function centeredWindow(url,width=980,height=820){
   width=Math.min(width,Math.max(760,area.width-80));height=Math.min(height,Math.max(640,area.height-80));
   return chrome.windows.create({url:chrome.runtime.getURL(url),type:"popup",width,height,left:Math.round(area.left+(area.width-width)/2),top:Math.round(area.top+(area.height-height)/2),focused:true});
 }
+// One pending launch per workspace prevents rapid clicks from racing the lookup.
+// Query Chrome each time so reuse still works after service-worker suspension.
+const pendingWorkspaceOpens=new Map();
+function openWorkspace(key,pages,url,width,height){
+  if(pendingWorkspaceOpens.has(key))return pendingWorkspaceOpens.get(key);
+  const opening=(async()=>{
+    const urls=pages.map(page=>chrome.runtime.getURL(page));
+    const matches=(await chrome.tabs.query({})).filter(tab=>{
+      const target=tab.pendingUrl||tab.url||"";
+      return urls.some(base=>target===base||target.startsWith(base+"?")||target.startsWith(base+"#"));
+    });
+    for(const tab of matches){
+      try{
+        await chrome.tabs.update(tab.id,{active:true});
+        const win=await chrome.windows.get(tab.windowId);
+        return await chrome.windows.update(tab.windowId,{focused:true,...(win.state==="minimized"?{state:"normal"}:{})});
+      }catch(error){
+        // A tab may have closed after the query. Only create a replacement if it is gone.
+        if(await chrome.tabs.get(tab.id).catch(()=>null))throw error;
+      }
+    }
+    return centeredWindow(url,width,height);
+  })();
+  pendingWorkspaceOpens.set(key,opening);
+  const clear=()=>{if(pendingWorkspaceOpens.get(key)===opening)pendingWorkspaceOpens.delete(key);};
+  opening.then(clear,clear);
+  return opening;
+}
 async function openEditor(sourceTab){
   const params=new URLSearchParams();
   if(sourceTab?.id!=null)params.set("sourceTabId",String(sourceTab.id));
   if(sourceTab?.windowId!=null)params.set("sourceWindowId",String(sourceTab.windowId));
   const url="editor.html"+(params.toString()?`?${params}`:"");
-  return centeredWindow(url,1180,820);
+  // Preserve the existing draft and its originating social tab; do not reload it.
+  return openWorkspace("editor",["editor.html","slides.html"],url,1180,820);
 }
-async function openSettings(){return centeredWindow("settings.html",940,860);}
+async function openSettings(){return openWorkspace("settings",["settings.html"],"settings.html",940,860);}
 
 chrome.action.onClicked.addListener(tab=>openEditor(tab));
 
@@ -148,14 +177,10 @@ chrome.runtime.onMessage.addListener((msg,sender,sendResponse)=>{
 
 ensureScheduler();
 
-chrome.runtime.onMessage.addListener((message,sender)=>{
+chrome.runtime.onMessage.addListener((message,sender,sendResponse)=>{
   if(message?.type==="POSTCARD_OPEN_EDITOR"){
-    const fakeTab={
-      id:message.sourceTabId ?? sender.tab?.id,
-      windowId:message.sourceWindowId ?? sender.tab?.windowId
-    };
-    openEditor(fakeTab);
+    const source={id:message.sourceTabId??sender.tab?.id,windowId:message.sourceWindowId??sender.tab?.windowId};
+    openEditor(source).then(()=>sendResponse({ok:true}),error=>sendResponse({ok:false,error:error.message}));
+    return true;
   }
 });
-
-
