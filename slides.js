@@ -308,16 +308,23 @@ async function renderThumbs(){
 async function select(i){activeSlide=Math.max(0,Math.min(i,slides.length-1));await saveState();await renderMain();await renderThumbs()}
 async function refresh(){await renderMain();await renderThumbs()}
 
-$("backBtn").onclick=async()=>{
-  await saveState();
-  await chrome.storage.local.remove(RETURN_TO_SLIDES_KEY);
-  location.replace("editor.html");
-};
-$("editBtn").onclick=async()=>{
-  await saveState();
-  await chrome.storage.local.set({[RETURN_TO_SLIDES_KEY]:{slideId:slides[activeSlide]?.id}});
-  location.replace("editor.html");
-};
+let openingEditor=false;
+async function openSlideEditor(editSlide=true){
+  if(openingEditor)return;
+  openingEditor=true;
+  try{
+    await saveState();
+    if(editSlide)await chrome.storage.local.set({[RETURN_TO_SLIDES_KEY]:{slideId:slides[activeSlide]?.id}});
+    else await chrome.storage.local.remove(RETURN_TO_SLIDES_KEY);
+    location.replace("editor.html");
+  }catch(error){
+    openingEditor=false;
+    console.error("Could not open slide editor:",error);
+    setStatus("Could not open this slide for editing. Please try again.",false);
+  }
+}
+$("backBtn").onclick=()=>openSlideEditor(false);
+$("editBtn").onclick=()=>openSlideEditor(true);
 $("prevBtn").onclick=()=>select(activeSlide-1);$("nextBtn").onclick=()=>select(activeSlide+1);
 $("addBtn").onclick=async()=>{slides.splice(activeSlide+1,0,emptySlide());activeSlide++;await saveState();await refresh()};
 $("duplicateBtn").onclick=async()=>{const copy=clone(slides[activeSlide]);copy.id=slideId();copy.audioId=audioId();slides.splice(activeSlide+1,0,copy);activeSlide++;await saveState();await refresh()};

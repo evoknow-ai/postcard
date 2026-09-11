@@ -915,6 +915,7 @@ async function saveLastFontPreference(font){
 
 const STATE_KEY="postcardEditorStateV1";
 let saveTimer=null;
+let editorReady=false,editorNavigating=false;
 
 function serializableBg(){
   return JSON.parse(JSON.stringify({...bg,imageObj:null,gifFrames:null}));
@@ -944,6 +945,7 @@ function currentEditorState(){
 
 
 function scheduleSave(){
+  if(!editorReady||editorNavigating)return;
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
     try{
@@ -956,15 +958,29 @@ function scheduleSave(){
 }
 async function restoreEditorState(){
   try{
-    const data=await chrome.storage.local.get(STATE_KEY);
-    const st=data?.[STATE_KEY];
+    const data=await chrome.storage.local.get([STATE_KEY,RETURN_TO_SLIDES_KEY]);
+    let st=data?.[STATE_KEY];
     if(!st||st.version!==1)return false;
+    const marker=data?.[RETURN_TO_SLIDES_KEY];
+    const savedSlides=Array.isArray(st.slides)?st.slides:[];
+    if((marker||st.lastWriter==="slides")&&savedSlides.length){
+      const found=marker?.slideId?savedSlides.findIndex(sl=>sl.id===marker.slideId):-1;
+      const index=found>=0?found:Math.max(0,Math.min(Number(st.activeSlide)||0,savedSlides.length-1));
+      const slide=savedSlides[index];
+      st={...st,activeSlide:index,bg:slide.bg,blocks:slide.blocks||[],tables:slide.tables||[],
+        images:slide.images||[],currentFormat:slide.format||"landscape",
+        selectedId:null,selectedTableId:null,selectedImageId:null};
+    }
+    if(marker)$("backToSlidesBtn")?.removeAttribute("hidden");
     editorStateExtras={...st};
     bg={...bg,...(st.bg||{})};
     blocks=Array.isArray(st.blocks)?st.blocks:[];
     tables=Array.isArray(st.tables)?st.tables.map(t=>({font:"Arial, sans-serif",size:28,color:"#ffffff",align:"center",bold:false,italic:false,...t})):[];
     slides=Array.isArray(st.slides)?st.slides:[];
-    activeSlide=Number.isInteger(st.activeSlide)?st.activeSlide:0;
+    activeSlide=Math.max(0,Math.min(Number(st.activeSlide)||0,Math.max(0,slides.length-1)));
+    const duration=Math.max(1,Number(slides[activeSlide]?.duration)||3);
+    $("slideDuration").value=duration;
+    $("slideDurationValue").textContent=`${duration}s`;
     images=cloneForHistory(st.images||[]);
     selectedImageId=st.selectedImageId??null;
     selectedId=st.selectedId??null;
@@ -993,8 +1009,6 @@ async function clearSavedState(){
   try{await chrome.storage.local.remove(STATE_KEY);}catch(_){}
 }
 
-setTimeout(()=>{ if(!slides.length){ slides=[serializeSlide()]; activeSlide=0; renderSlideList(); } },100);
-
 document.addEventListener("input",scheduleSave,true);
 document.addEventListener("change",scheduleSave,true);
 document.addEventListener("click",e=>{
@@ -1008,7 +1022,7 @@ $("creditsBtn")?.addEventListener("click",()=>$("creditsDialog")?.showModal());
 $("closeCreditsBtn")?.addEventListener("click",()=>$("creditsDialog")?.close());
 $("creditsDialog")?.addEventListener("click",e=>{ if(e.target===$("creditsDialog")) $("creditsDialog").close(); });
 
-(async()=>{
+const editorInitialization=(async()=>{
   renderMenus();
   applyBackground();
   setFormat("landscape");
@@ -1017,6 +1031,9 @@ $("creditsDialog")?.addEventListener("click",e=>{ if(e.target===$("creditsDialog
 
   const restored=await restoreEditorState();
   if(restored){
+    if(!slides.length){slides=[serializeSlide()];activeSlide=0;renderSlideList();}
+    editorReady=true;
+    initHistory();
     setStatus("Restored previous PostCard session.");
     return;
   }
@@ -1031,6 +1048,8 @@ $("creditsDialog")?.addEventListener("click",e=>{ if(e.target===$("creditsDialog
   slides=[serializeSlide()];
   activeSlide=0;
   renderSlideList();
+  editorReady=true;
+  initHistory();
   scheduleSave();
 })();
 
@@ -1464,31 +1483,27 @@ $("webcamMicSelect")?.addEventListener("change",()=>{if(webcamStream&&$("webcamA
 $("webcamAudio")?.addEventListener("change",()=>{if(webcamStream)startWebcam();});
 
 async function saveNowBeforeNavigation(){
-  try{
-    document.activeElement?.blur?.();
-    scheduleSave();
-    await new Promise(r=>setTimeout(r,250));
-  }catch(e){
-    console.error("Immediate save before navigation failed:",e);
-  }
+  await editorInitialization;
+  document.activeElement?.blur?.();
+  clearTimeout(saveTimer);
+  saveActiveSlide();
+  await chrome.storage.local.set({[STATE_KEY]:currentEditorState()});
 }
 
-$("slidesBtn")?.addEventListener("click",async()=>{
-  await saveNowBeforeNavigation();
-  try{ await chrome.storage.local.remove(RETURN_TO_SLIDES_KEY); }catch(_){}
-  location.href="slides.html";
-});
-$("backToSlidesBtn")?.addEventListener("click",async()=>{
-  await saveNowBeforeNavigation();
-  try{ await chrome.storage.local.remove(RETURN_TO_SLIDES_KEY); }catch(_){}
-  location.href="slides.html";
-});
+async function returnToSlides(){
+  if(editorNavigating)return;
+  editorNavigating=true;
+  try{
+    await saveNowBeforeNavigation();
+    await chrome.storage.local.remove(RETURN_TO_SLIDES_KEY);
+    location.href="slides.html";
+  }catch(error){
+    editorNavigating=false;
+    console.error("Could not save slide:",error);
+    setStatus("Could not save this slide. Please try again.",false);
+  }
+}
+$("slidesBtn")?.addEventListener("click",returnToSlides);
+$("backToSlidesBtn")?.addEventListener("click",returnToSlides);
 
 $("webcamBtn")?.addEventListener("click",()=>{setTimeout(refreshWebcamDevices,0);});
-
-document.addEventListener("DOMContentLoaded",async()=>{
-  try{
-    const marker=await chrome.storage.local.get(RETURN_TO_SLIDES_KEY);
-    if(marker?.[RETURN_TO_SLIDES_KEY]) $("backToSlidesBtn")?.removeAttribute("hidden");
-  }catch(_){}
-});

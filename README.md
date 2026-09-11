@@ -579,3 +579,13 @@ Validation: regression tests cover text/image pointer handlers, all resize corne
 - Added feature preservation checks and recovery provenance in `docs/FEATURE-PRESERVATION.md`.
 
 Actual Chrome interaction, microphone capture and MP4 playback testing were blocked by the browser's URL security policy; local regression tests are not a substitute for those checks.
+
+
+### v0.9.11 — slide editing handoff
+
+- Load the selected slide directly in the editor using its stable ID, including blank/new slides; clear selection from the previous card.
+- Restore slide duration along with its content on both Edit Slide and Back to editor.
+- Save and await completion before returning to Slides. Failed writes keep the editor open with an error.
+- Prevent autosave during initial restoration or navigation.
+- Replace the asynchronous bridge loader with the normal editor script and cover the actual HTML script entry points in tests.
+- Validation: 21 automated tests and JavaScript syntax checks pass. Live browser interaction could not be verified because the managed browser blocked the local preview URL.

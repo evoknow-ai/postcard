@@ -14,3 +14,6 @@ Before delivering a release, run `node --test tests/*.test.cjs` and the JavaScri
 - State: retain slide audio IDs, voice levels, presentation music settings and durations when the editor saves a card or slide.
 
 Validation limits for v0.9.5: local tests cover geometry, ordered rendering, frame selection, state preservation and control availability. Browser security policy blocked live UI and MediaRecorder testing. Actual microphone capture and generated MP4 playback therefore remain unverified in Chrome. No Chrome Web Store release was performed.
+
+
+Version 0.9.11 uses the complete 0.9.10 feature baseline from `feature/image-paste-resize`. Do not rebuild this release from the older `main` branch. The editor now loads directly from `editor.html`; do not restore the removed bridge loader. Startup tests read script tags from the HTML and exercise the add/edit/return flow, reordered IDs, delayed/failed saves, and duration/audio preservation.
